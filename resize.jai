@@ -1,7 +1,3 @@
-// OS functions:
-// ioctl
-// sigaction
-
 terminal_state : struct {
 	size_x, size_y : u16;
 	on_resize : () = null;
@@ -32,3 +28,5 @@ enable_resize_handling :: () {
 
 TIOCGWINSZ :: 0x5413;
 SIGWINCH :: 0x1C;
+
+#import "Thread";

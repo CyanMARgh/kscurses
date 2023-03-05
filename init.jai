@@ -1,4 +1,5 @@
-init :: () {
+
+ks_init :: () {
 	ks_write(tprint("%1%2%3%4", "\e[?25l", "\e7", "\e[?1047h", "\e[?30l"));
 	// 1 - hide cursor
 	// 2 - save cursor
@@ -11,15 +12,16 @@ init :: () {
 	enable_resize_handling();
 	reset_temporary_storage();
 }
-terminate :: () {
-	ks_write(tprint("%1%2%3", "\e[?47l", "\e8", "\e[?25h"));
+ks_terminate :: () {
+	ks_write(tprint("%1%2%3%4", "\e[?47l", "\e8", "\e[?25h", "\e[?30h"));
 	// 1 - restore first screen
 	// 2 - restore cursor position
 	// 3 - show cursor
+	// 4 - show scrolbar
 	run_command("stty", "-raw", "echo"); // set normal input mode
 	reset_temporary_storage();
 }
 use_ks_curses :: () #expand {
-	init();
-	`defer terminate();
+	ks_init();
+	`defer ks_terminate();
 }
