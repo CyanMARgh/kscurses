@@ -15,16 +15,10 @@ refresh :: (using w : *Window) {
 		prev_mode : Graphics_Mode; // TODO ???
 		b_move_cursor(*builder, ivec2.{0, y} + corner);
 		for x : 0..width-1 {
-			C := chars[pix_id];
-			b_mode_difference(*builder, prev_mode, C.mode);
-			prev_mode = C.mode;
-			char_str : string;
-			char_str.data = xx *(C.code);
-			char_str.count = length(C);
-			append(*builder, char_str);
+			b_putchar(*builder, chars[pix_id]);
 			pix_id += 1;
 		}
-		b_esc_m(*builder, 0);
+		b_mode_reset(*builder);
 	}
 	str := builder_to_string(*builder, temp);
 	print_string_size = str.count;

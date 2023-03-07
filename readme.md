@@ -6,9 +6,9 @@ Currently available support :
 - window resize handle
 - text modifiers (bold, italic, underline, strikethrough)
 - text and background color.
-- Arrows input
+- Arrows input (escape key also aviable)
 - saving and restoring the terminal
-- exit with esc+esc and crtl+C (optional).
+- exit with and crtl+C (optional).
 - color256
 
 Currently works only on linux (tested on gnome terminal).

@@ -4,6 +4,7 @@ Keys :: enum u64 {
 	RIGHT	:: 0x435B1B;
 	LEFT	:: 0x445B1B;
 	ENTER	:: 0x0D;
+	ESCAPE	:: 0x1B;
 }
 ks_getch :: () -> u64 {
 	buf : u64 = 0;
@@ -15,6 +16,13 @@ ks_getch :: () -> u64 {
 		#if ENABLE_SIGKILL if code == 28 return 137;
 		return 0;
 	}
+	read_byte_nonblock :: () -> s64 #expand {
+		flags := fcntl(STDIN_FILENO, F_GETFL, 0);
+		fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+		r := read(STDIN_FILENO, (cast(*u8)*`buf) + `byte, 1);
+		fcntl(STDIN_FILENO, F_SETFL, flags);
+		return r;
+	}
 	read_byte :: () #expand {
 		while read(STDIN_FILENO, (cast(*u8)*`buf) + `byte, 1) != 1 { }
 		byte += 1;
@@ -22,12 +30,13 @@ ks_getch :: () -> u64 {
 
 	read_byte();
 
-	#if ENABLE_ARROWS || DOUBLE_ESCAPE_EXIT if buf == 0x1B {
-		read_byte();
-		#if DOUBLE_ESCAPE_EXIT if buf == 0x1B1B {
-			ks_terminate();
-			exit(0);
+	#if ENABLE_ARROWS if buf == 0x1B {
+		sleep_milliseconds(ESCAPE_DELAY_MS); // TODO maybe i should find better way to do it
+		r := read_byte_nonblock();
+		if r != 1 {
+			return buf;
 		}
+		byte += 1;
 		#if ENABLE_ARROWS if buf == 0x5B1B { // maybe there is a two-byte keyboard esc-code, but I haven't come across one yet.
 			read_byte();
 		}
@@ -52,60 +61,3 @@ ks_write :: (str : string) {
 		}
 	}	
 }
-
-ks_bell :: () {
-	bell_str : string;
-	bell := 7;
-	bell_str.data, bell_str.count = xx *bell, 1;
-	ks_write(bell_str);
-}
-
-
-b_move_cursor :: inline (builder : *String_Builder, coord : ivec2) {
-	print_to_builder(builder, "\e[%;%H", coord.y + 1, coord.x + 1);
-}
-t_move_cursor :: inline (coord : ivec2) -> string {
-	return tprint("\e[%;%H", coord.y, coord.x);
-}
-ks_move_cursor :: inline (coord : ivec2) {
-	ks_write(tprint("\e[%;%H", coord.y + 1, coord.x + 1));
-}
-
-
-b_print :: (builder : *String_Builder, coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) {
-	if coord != .{-1, -1} b_move_cursor(builder, coord);
-	b_mode_set(builder, mode);
-	print_to_builder(builder, fmt, ..args);
-}
-t_print :: (coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) -> string {
-	builder := String_Builder.{allocator = temp};
-	b_print(*builder, coord, mode, fmt, ..args);
-	return builder_to_string(*builder, temp);
-}
-
-ks_print :: inline (coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) {
-	ks_write(t_print(coord, mode, fmt, ..args));
-}
-
-
-b_clear_screen :: (builder : *String_Builder) {
-	append(builder, "\e[2J");
-}
-t_clear_screen :: inline () -> string {
-	return "\e[2J";
-}
-ks_clear_screen :: inline () {	
-	ks_write("\e[2J");
-}
-
-b_esc_m :: inline (builder : *String_Builder, code : int) {
-	print_to_builder(builder, "\e[%m", code);
-}
-t_esc_m :: inline (code : int) -> string {
-	return tprint("\e[%m", code);
-}
-ks_esc_m :: inline (code : int) {
-	ks_write(t_esc_m(code));
-}
-
-// coord & attrs <- optioanl params

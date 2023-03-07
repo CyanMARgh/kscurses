@@ -3,19 +3,13 @@ Graphics_Mode :: struct {
 	foreground : u8;
 	background : u8;
 	attrs : [MAX_ATTRS]bool;
-	fcol256 : u8;
-	bcol256 : u8;
 	// 0 - bold (on/off/keep)
 	// 1 - dim/faint
 	// 2 - italic
 	// 3 - underline
 	// 4 - strikethrough (?)
-}
-Char :: struct {
-	code : u64;
-	#place code;
-	codes : [8]u8;
-	using mode : Graphics_Mode;
+	fcol256 : u8;
+	bcol256 : u8;
 }
 Color :: enum u8 {
 	RESET 			:: 0;
@@ -40,48 +34,17 @@ Color :: enum u8 {
 	BRIGHT_CYAN 	:: 96;
 	BRIGHT_WHITE 	:: 97;
 }
-b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using current : Graphics_Mode) {
-	add_attr_code :: (builder : *String_Builder, prev : bool, current : bool, on_code : u8) { 
-		if prev != current {
-			print_to_builder(builder, "\e[%m", ifx current on_code else on_code + 20); 
-		}
-	}
-	if foreground != prev.foreground || fcol256 != prev.fcol256 {
-		if foreground != xx Color.COLOR256 {
-			print_to_builder(builder, "\e[%m", foreground);
-		} else {
-			print_to_builder(builder, "\e[38;5;%m", fcol256);			
-		}
-	}
-	if background != prev.background || bcol256 != prev.bcol256 {
-		if background != xx Color.COLOR256 + 10 {
-			print_to_builder(builder, "\e[%m", background);
-		} else {
-			print_to_builder(builder, "\e[48;5;%m", bcol256);
-		}
-	}
-	add_attr_code(builder, prev.attrs[0], attrs[0], 1);
-	add_attr_code(builder, prev.attrs[1], attrs[1], 2);
-	add_attr_code(builder, prev.attrs[2], attrs[2], 3);
-	add_attr_code(builder, prev.attrs[3], attrs[3], 4);
-	add_attr_code(builder, prev.attrs[4], attrs[4], 9);
-}
+Attr :: enum u8 {
+	BOLD 				:: 1;
+	DIM 				:: 2;
+	ITALIC 				:: 3;
+	UNDERLINE			:: 4;
+	STRIKETHROUGH		:: 9;
 
-b_mode_set :: (builder : *String_Builder, using mode : Graphics_Mode) {
-	add_attr_code :: (builder : *String_Builder, current : bool, on_code : u8) { 
-		print_to_builder(builder, "\e[%m", ifx current on_code else on_code + 20); 
-	}
-	print_to_builder(builder, "\e[%m", foreground);
-	print_to_builder(builder, "\e[%m", background);
-	add_attr_code(builder, attrs[0], 1);
-	add_attr_code(builder, attrs[1], 2);
-	add_attr_code(builder, attrs[2], 3);
-	add_attr_code(builder, attrs[3], 4);
-	add_attr_code(builder, attrs[4], 9);
-}
-t_mode_set :: (mode : Graphics_Mode) -> string {
-	builder := String_Builder.{allocator = temp};
-	return builder_to_string(*builder, temp);
+	BOLD_AND_DIM_OFF	:: 22;
+	ITALIC_OFF			:: 23;
+	UNDERLINE_OFF		:: 24;
+	STRIKETHROUGH_OFF 	:: 29;
 }
 
 make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Graphics_Mode {
@@ -99,10 +62,22 @@ make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT,
 
 	return result;
 }
+
+Char :: struct {
+	code : u64;
+	#place code;
+	codes : [8]u8 = ---;
+	mode : Graphics_Mode;
+}
 make_char :: (code : u64, foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Char {
-	return .{code, make_graphics_mode(foreground, background, bold, dim, italic, underline, strikethrough, fcol256, bcol256)};
+	return .{code = code, mode = make_graphics_mode(foreground, background, bold, dim, italic, underline, strikethrough, fcol256, bcol256)};
 }
 length :: (c : Char) -> u8 {
 	for 0..7 if !c.codes[it] return xx it;
 	return 8;
+}
+utf8 :: (str : string) -> u64 {
+	code : u64;
+	memcpy(*code, str.data, str.count);
+	return code;
 }

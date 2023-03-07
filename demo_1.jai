@@ -9,7 +9,7 @@ demo_1 :: () {
 		}
 		set_audio_enabled(plm, false);
 		w, h := get_size(plm); video_size = .{w, h};
-		rgb_buffer = NewArray(w * h, Pixel); defer array_free(rgb_buffer);		
+		rgb_buffer = NewArray(w * h, u8vec3); defer array_free(rgb_buffer);		
 	}
 
 	update_frame :: () {
@@ -26,14 +26,14 @@ demo_1 :: () {
 	fill_function :: (coord : ivec2, size : ivec2) -> Char {
 		_x, _y := coord.x * (video_size.x - 1) / size.x, coord.y * (video_size.y - 1) / size.y;
 		pixel := rgb_buffer[_y * video_size.x + _x];
-		return find_best_char(pixel);
+		return find_best_char(pixel, true/*coord.x * 2 < size.x*/);
 	}
 	update_frame();
 
 	refresh_all :: () {
 		lock(*win_mtx);
 			using terminal_state;
-			resize_no_fill(*main_window, .{width=size_x, height=size_y});
+			resize_no_fill(*main_window, .{size=size});
 			lock(*buf_mtx);
 				fill(*main_window, fill_function);
 			unlock(*buf_mtx);
@@ -77,45 +77,53 @@ demo_1 :: () {
 #import "Thread";
 
 plm : *Plm;
-Pixel :: struct { r, g, b : u8; }
-COLOR_CODES :: Pixel.[
-	.{0x17, 0x14, 0x21},
-	.{0xC0, 0x1C, 0x28},
-	.{0x26, 0xA2, 0x69},
-	.{0xA2, 0x73, 0x4C},
-	.{0x12, 0x48, 0x8B},
-	.{0xA3, 0x47, 0xBA},
-	.{0x2A, 0xA1, 0xB3},
-	.{0xD0, 0xCF, 0xCC},
-	.{0x5E, 0x5C, 0x64},
-	.{0xF6, 0x61, 0x51},
-	.{0x33, 0xDA, 0x7A},
-	.{0xE9, 0xAD, 0x0C},
-	.{0x2A, 0x7B, 0xDE},
-	.{0xC0, 0x61, 0xCB},
-	.{0x33, 0xC7, 0xDE},
-	.{0xFF, 0xFF, 0xFF}
-];
-mix :: (p1 : Pixel, p2 : Pixel, m : float) -> Pixel {
-	mix :: (x : u8, y : u8, m : float) -> u8 {
-		return cast(u8)(cast(float) x + m * cast(float) (y - x));
+
+find_best_char :: (_p : u8vec3, use_mix : bool) -> Char {
+	p := cast_vec(s32, _p);
+	to_6level :: (x : s32) -> u8, s32 {
+		if x < 44 {
+			return 0, 0;
+		} else if x < 112 {
+			return 1, 87;
+		} else if x < 156 {
+			return 2, 135;
+		} else if x < 196 {
+			return 3, 175;
+		} else if x < 236 {
+			return 4, 215;
+		} else {
+			return 5, 255;
+		}
 	}
-	return .{mix(p1.r, p2.r, m), mix(p1.g, p2.g, m), mix(p1.b, p2.b, m)};
-}
+	to_6level :: (v : ivec3) -> u8vec3, ivec3 {
+		ix, hx := to_6level(v.x);
+		iy, hy := to_6level(v.y);
+		iz, hz := to_6level(v.z);
+		return .{ix, iy, iz}, .{hx, hy, hz};
+	}
+	col_code :: (v : u8vec3) -> u8 {
+		return 16 + 36 * v.x + 6 * v.y + v.z;
+	}
+	a6, a256 := to_6level(p);
+	b6, b256 := to_6level(p * 2 - a256);
 
-find_best_char :: (p : Pixel) -> Char {
-	r6 := cast(u16)p.r * 6 / 256;
-	g6 := cast(u16)p.g * 6 / 256;
-	b6 := cast(u16)p.b * 6 / 256;
-
-	x := 16 + 36 * r6 + 6 * g6 + b6;
-	return make_char(
-		#char" ",
-		background = .COLOR256,
-		bcol256 = cast(u8)x 
-	);
+	if use_mix {
+		return make_char(
+			utf8("▒"),
+			foreground = .COLOR256,
+			background = .COLOR256,
+			fcol256 = col_code(b6),
+			bcol256 = col_code(a6)
+		);
+	} else {
+		return make_char(
+			utf8(" "),
+			background = .COLOR256,
+			bcol256 = col_code(a6)
+		);
+	}
 }
-rgb_buffer : []Pixel;
+rgb_buffer : []u8vec3;
 buf_mtx : Mutex;
 
 video_size : ivec2;
@@ -123,8 +131,6 @@ frame_id := 0;
 video_runs := true;
 forced_exit := false;
 
-// FRAME_COUNT :: 5468;
-// LENGTH_MS :: (3 * 60 + 39) * 1000;
 FPS :: 25;
 
 main_window : Window;

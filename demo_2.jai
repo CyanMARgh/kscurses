@@ -10,13 +10,14 @@ demo_2 :: () {
 	refresh_all :: () {
 		using terminal_state;
 		ks_clear_screen();
-		resize_no_fill(*main_window, .{width=size_x, height=size_y});
+		resize_no_fill(*main_window, .{size=size});
 		fill(*main_window, fill_function);
 		refresh(*main_window);
 	};
 	terminal_state.on_resize = refresh_all;
 
 	use_ks_curses();
+
 	defer clear(main_window);
 
 	input := ks_getch();
@@ -26,17 +27,14 @@ demo_2 :: () {
 
 main_window : Window;
 
-Pixel :: struct { 
-	r, g, b : u8;
-}
-find_best_char :: (p : Pixel) -> Char {
-	r6 := cast(u16)p.r * 6 / 256;
-	g6 := cast(u16)p.g * 6 / 256;
-	b6 := cast(u16)p.b * 6 / 256;
+find_best_char :: (p : u8vec3) -> Char {
+	r6 := cast(u16)p.x * 6 / 256;
+	g6 := cast(u16)p.y * 6 / 256;
+	b6 := cast(u16)p.z * 6 / 256;
 
 	x := 16 + 36 * r6 + 6 * g6 + b6;
 	return make_char(
-		#char" ",
+		utf8(" "),
 		background = .COLOR256,
 		bcol256 = cast(u8)x 
 	);

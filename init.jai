@@ -1,4 +1,3 @@
-
 ks_init :: () {
 	ks_write(tprint("%1%2%3%4", "\e[?25l", "\e7", "\e[?1047h", "\e[?30l"));
 	// 1 - hide cursor

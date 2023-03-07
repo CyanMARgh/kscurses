@@ -1,5 +1,5 @@
 terminal_state : struct {
-	size_x, size_y : u16;
+	size : ivec2;
 	on_resize : () = null;
 }
 update_terminal_size :: () {
@@ -8,7 +8,7 @@ update_terminal_size :: () {
 		ws_row, ws_col, ws_xpixel, ws_ypixel : u16;
 	}
 	ioctl(0, TIOCGWINSZ, *winsize);
-	size_x, size_y = winsize.ws_col, winsize.ws_row;
+	size = .{winsize.ws_col, winsize.ws_row};
 	if on_resize on_resize();
 }
 enable_resize_handling :: () {
