@@ -1,14 +1,10 @@
 demo_3 :: () {
 	set_elements(*ui_master, *left_box, *middle_box, *right_box, *select_list);
-
 	defer reset_log();
-
 	add_link_lr(*ui_master, 0, 1);
 	add_link_lr(*ui_master, 1, 2);
 	add_link_tb(*ui_master, 0, 3);
-
 	terminal_state.on_resize = () => {ks_refresh(*ui_master);};
-
 	use_ks_curses();
 	io_cycle(*ui_master);
 }
@@ -55,8 +51,6 @@ right_box := UI_Button.{
 	text = "me too!"
 };
 
-//TODO mark elements, that should be refreshed
-//TODO "sure you want to exit?"
 ui_master := UI_Master.{
 	size_min = .{40, 20},
 	size_default = .{50, 30}
