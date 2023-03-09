@@ -1,13 +1,15 @@
-MAX_ATTRS :: 5;
+MAX_ATTRS :: 7;
 Graphics_Mode :: struct {
-	foreground : u8;
+	foreground : u8;		//TODO u8 -> Color
 	background : u8;
 	attrs : [MAX_ATTRS]bool;
 	// 0 - bold (on/off/keep)
 	// 1 - dim/faint
 	// 2 - italic
 	// 3 - underline
-	// 4 - strikethrough (?)
+	// 4 - blinking
+	// 5 - inverse
+	// 6 - strikethrough
 	fcol256 : u8;
 	bcol256 : u8;
 }
@@ -39,15 +41,19 @@ Attr :: enum u8 {
 	DIM 				:: 2;
 	ITALIC 				:: 3;
 	UNDERLINE			:: 4;
+	BLINKING			:: 5;
+	INVERSE				:: 7;
 	STRIKETHROUGH		:: 9;
 
 	BOLD_AND_DIM_OFF	:: 22;
 	ITALIC_OFF			:: 23;
 	UNDERLINE_OFF		:: 24;
+	BLINKING_OFF		:: 25;
+	INVERSE_OFF			:: 27;
 	STRIKETHROUGH_OFF 	:: 29;
 }
 
-make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Graphics_Mode {
+make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Graphics_Mode {
 	result : Graphics_Mode = ---;
 
 	result.foreground = xx foreground;
@@ -56,7 +62,9 @@ make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT,
 	result.attrs[1] = dim;
 	result.attrs[2] = italic;
 	result.attrs[3] = underline;
-	result.attrs[4] = strikethrough;
+	result.attrs[4] = blinking;
+	result.attrs[5] = inverse;
+	result.attrs[6] = strikethrough;
 	result.fcol256 = fcol256;
 	result.bcol256 = bcol256;
 
@@ -69,11 +77,19 @@ Char :: struct {
 	codes : [8]u8 = ---;
 	mode : Graphics_Mode;
 }
-make_char :: (code : u64, foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Char {
-	return .{code = code, mode = make_graphics_mode(foreground, background, bold, dim, italic, underline, strikethrough, fcol256, bcol256)};
+make_char :: (code : u64, foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Char {
+	return .{code = code, mode = make_graphics_mode(foreground, background, bold, dim, italic, underline, blinking, inverse, strikethrough, fcol256, bcol256)};
 }
 length :: (c : Char) -> u8 {
-	for 0..7 if !c.codes[it] return xx it;
+	// for 0..7 if !c.codes[it] return xx it;
+	// return 8;
+	return length_code(c.code);
+}
+length_code :: inline (c : u64) -> u8 {
+	for 0..7 {
+		if !c return xx it;
+		c >>= 8;
+	}
 	return 8;
 }
 utf8 :: (str : string) -> u64 {

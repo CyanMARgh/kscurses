@@ -18,3 +18,5 @@ ESCAPE_DELAY_MS :: 10;
 #load "modes.jai";
 #load "print.jai";
 #load "window.jai";
+#load "style.jai";
+#load "ui.jai";

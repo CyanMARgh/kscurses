@@ -1,16 +1,16 @@
 demo_1 :: () {
 	init(*win_mtx);
 	init(*buf_mtx);
-	{
-		plm = create_with_filename("clip.mpg");
-		if !plm {
-			print("Couldn't open video\n");
-			return;
-		}
-		set_audio_enabled(plm, false);
-		w, h := get_size(plm); video_size = .{w, h};
-		rgb_buffer = NewArray(w * h, u8vec3); defer array_free(rgb_buffer);		
+	
+	plm = create_with_filename("clip.mpg");
+	if !plm {
+		print("Couldn't open video\n");
+		return;
 	}
+	set_audio_enabled(plm, false);
+	w, h := get_size(plm); video_size = .{w, h};
+	rgb_buffer = NewArray(w * h, u8vec3); defer array_free(rgb_buffer);		
+	defer plm_destroy(plm);
 
 	update_frame :: () {
 		lock(*buf_mtx); defer unlock(*buf_mtx);

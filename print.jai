@@ -57,6 +57,7 @@ ks_esc_m :: inline ($$code : int) {
 #scope_file
 last_mode : Graphics_Mode;
 
+//TODO switch to \e[1;34;{...}m maybe
 b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using current : Graphics_Mode) {
 	add_attr_code :: (builder : *String_Builder, prev : bool, current : bool, on_code : Attr, off_code : Attr) { 
 		if prev != current {
@@ -90,7 +91,9 @@ b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using cur
 	}
 	add_attr_code(builder, prev.attrs[2], attrs[2], .ITALIC, .ITALIC_OFF);
 	add_attr_code(builder, prev.attrs[3], attrs[3], .UNDERLINE, .UNDERLINE_OFF);
-	add_attr_code(builder, prev.attrs[4], attrs[4], .STRIKETHROUGH, .STRIKETHROUGH_OFF);
+	add_attr_code(builder, prev.attrs[4], attrs[4], .BLINKING, .BLINKING_OFF);
+	add_attr_code(builder, prev.attrs[5], attrs[5], .INVERSE, .INVERSE_OFF);
+	add_attr_code(builder, prev.attrs[6], attrs[6], .STRIKETHROUGH, .STRIKETHROUGH_OFF);
 }
 #scope_export
 
@@ -113,8 +116,19 @@ t_mode_set :: (mode : Graphics_Mode) -> string {
 b_putchar :: (builder : *String_Builder, c : Char/*, coord := ivec2.{-1, -1}*/) {
 	// if coord != ivec2.{-1, -1} b_move_cursor(builder, coord);
 	b_mode_set(builder, c.mode);
+
+	b_putchar(builder, c.code);
+	// char_str : string;
+	// char_str.data = xx *(c.code);
+	// char_str.count = length(c);
+	// append(builder, char_str);
+}
+
+b_putchar :: inline (builder : *String_Builder, code : u64/*, coord := ivec2.{-1, -1}*/) {
+	// if coord != ivec2.{-1, -1} b_move_cursor(builder, coord);
+	// b_mode_set(builder, c.mode);
 	char_str : string;
-	char_str.data = xx *(c.code);
-	char_str.count = length(c);
+	char_str.data = xx *(code);
+	char_str.count = length_code(code);
 	append(builder, char_str);
 }
