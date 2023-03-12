@@ -31,30 +31,40 @@ demo_1 :: () {
 	update_frame();
 
 	refresh_all :: () {
-		lock(*win_mtx);
+		// lock(*win_mtx); defer unlock(*win_mtx);
+		// lock(*buf_mtx); defer unlock(*buf_mtx);
+		// lock(*win_mtx);
 			using terminal_state;
 			resize_no_fill(*main_window, .{size=size});
-			lock(*buf_mtx);
-				fill(*main_window, fill_function);
-			unlock(*buf_mtx);
+			fill(*main_window, fill_function);
 			refresh(*main_window);
 			if !video_runs ks_print(.{2, 2}, make_graphics_mode(foreground = .BLACK, background = .GREEN), "press any key to exit.");
-		unlock(*win_mtx);
+		// unlock(*win_mtx);
 	}
 
-	terminal_state.on_resize = refresh_all;
+	terminal_state.on_resize = () => {
+		lock(*win_mtx); defer unlock(*win_mtx);
+		refresh_all();
+	};
+	
 	{
 		use_ks_curses();
 			
-		defer clear(main_window);
+		defer {
+			lock(*win_mtx); defer unlock(*win_mtx);
+			clear(main_window);
+		}
 
 		render_cycle :: (thread : *Thread) -> s64 {
 			using terminal_state;
 			t0 := to_milliseconds(current_time_monotonic());
 			while video_runs && !forced_exit {
 				ti := to_milliseconds(current_time_monotonic());
-				update_frame();
-				refresh_all();
+				{
+					lock(*win_mtx); defer unlock(*win_mtx);
+					update_frame();
+					refresh_all();
+				}
 				delta := (frame_id * 1000 / FPS) - (ti - t0);
 				if delta > 0 sleep_milliseconds(xx delta);
 			}

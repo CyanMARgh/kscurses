@@ -41,14 +41,14 @@ demo_0 :: () {
 		}
 	}
 	refresh_all :: () {
-		using terminal_state;
+		// using terminal_state;
 		using app_state;
 		ks_clear_screen();
-		resize_no_fill(*main_window, .{size=size});
+		resize_no_fill(*main_window, .{size=terminal_state.size});
 		fill(*main_window, fill_function);
 		refresh(*main_window);
 		ks_print(.{8, 4}, make_graphics_mode(background = .BLACK), "screen string size = %", print_string_size);
-		ks_print(.{8, 5}, make_graphics_mode(background = .YELLOW), "window size = % %", size.x, size.y);
+		ks_print(.{8, 5}, make_graphics_mode(background = .YELLOW), "window size = % %", terminal_state.size.x, terminal_state.size.y);
 		refresh_tab();
 	};
 	terminal_state.on_resize = refresh_all;
@@ -59,25 +59,20 @@ demo_0 :: () {
 	using app_state;
 	while 1 {
 		input := ks_getch();
-		if input == xx Keys.UP {
-			if cursor > 0 {
-				cursor -= 1;
-			}
-		} else if input == xx Keys.DOWN {
-			if cursor < ROWS - 1 {
-				cursor += 1;
-			}
-		} else if input == xx Keys.ENTER {
+		if input == {
+			case xx Key.UP;
+			if cursor > 0 cursor -= 1;
+			case xx Key.DOWN;
+			if cursor < ROWS - 1 cursor += 1;
+			case xx Key.ENTER;
 			if cursor == selection {
 				selection = -1;
 			} else {
 				selection = cursor;
 			}
-		} else if input == xx Keys.ESCAPE {
+			case xx Key.ESCAPE;
 			break;
-		} else {
-			continue;
-		}		
+		}
 		refresh_tab();
 	}
 }

@@ -1,7 +1,3 @@
-terminal_state : struct {
-	size : ivec2;
-	on_resize : () = null;
-}
 update_terminal_size :: () {
 	using terminal_state;
 	winsize : struct {
@@ -28,5 +24,3 @@ enable_resize_handling :: () {
 
 TIOCGWINSZ :: 0x5413;
 SIGWINCH :: 0x1C;
-
-#import "Thread";

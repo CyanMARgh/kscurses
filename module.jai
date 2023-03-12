@@ -1,8 +1,6 @@
-ENABLE_SIGINT :: true;
+ENABLE_SIGINT :: false;
 ENABLE_SIGTERM :: true;
 ENABLE_SIGKILL :: true;
-ENABLE_ARROWS :: true;
-ESCAPE_DELAY_MS :: 10;
 
 #import "Basic"();
 #import "POSIX";
@@ -19,4 +17,10 @@ ESCAPE_DELAY_MS :: 10;
 #load "print.jai";
 #load "window.jai";
 #load "style.jai";
-#load "ui.jai";
+
+#load "ui/master.jai";
+#load "ui/text_block.jai";
+#load "ui/line_input.jai";
+#load "ui/button.jai";
+#load "ui/select_list.jai";
+#load "ui/anchors.jai";

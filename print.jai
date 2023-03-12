@@ -4,6 +4,10 @@ ks_bell :: () {
 	bell_str.data, bell_str.count = xx *bell, 1;
 	ks_write(bell_str);
 }
+ENABLE_UI_BELL :: true;
+ui_bell :: inline () {
+	#if ENABLE_UI_BELL ks_bell();
+}
 
 
 b_move_cursor :: inline (builder : *String_Builder, coord : ivec2) {
@@ -15,7 +19,9 @@ t_move_cursor :: inline (coord : ivec2) -> string {
 ks_move_cursor :: inline (coord : ivec2) {
 	ks_write(tprint("\e[%;%H", coord.y + 1, coord.x + 1));
 }
-
+b_cursor_set_visibility :: inline (builder : *String_Builder, $$visible : bool) {
+	append(builder, ifx visible "\e[?25h" else "\e[?25l");
+}
 
 b_print :: (builder : *String_Builder, coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) {
 	if coord != .{-1, -1} b_move_cursor(builder, coord);
@@ -55,8 +61,6 @@ ks_esc_m :: inline ($$code : int) {
 
 
 #scope_file
-last_mode : Graphics_Mode;
-
 //TODO switch to \e[1;34;{...}m maybe
 b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using current : Graphics_Mode) {
 	add_attr_code :: (builder : *String_Builder, prev : bool, current : bool, on_code : Attr, off_code : Attr) { 
@@ -100,11 +104,11 @@ b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using cur
 
 b_mode_reset :: (builder : *String_Builder) {
 	b_esc_m(builder, 0);
-	last_mode = .{};
+	terminal_state.last_mode = .{};
 }
 b_mode_set :: (builder : *String_Builder, using mode : Graphics_Mode) {
-	b_mode_difference(builder, last_mode, mode);
-	last_mode = mode;
+	b_mode_difference(builder, terminal_state.last_mode, mode);
+	terminal_state.last_mode = mode;
 }
 t_mode_set :: (mode : Graphics_Mode) -> string {
 	builder := String_Builder.{allocator = temp};

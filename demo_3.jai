@@ -51,6 +51,8 @@ right_box := UI_Button.{
 	text = "me too!"
 };
 
+//TODO mark elements, that should be refreshed
+//TODO "sure you want to exit?" & popups/multiple screens at all
 ui_master := UI_Master.{
 	size_min = .{40, 20},
 	size_default = .{50, 30}
