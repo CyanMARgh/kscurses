@@ -27,6 +27,7 @@ Key :: enum u64 {
 	CTRL_C			:: 0x03;
 	CTRL_V			:: 0x16;
 	CTRL_X			:: 0x18;
+	CTRL_Z			:: 0x1A;
 
 	// ALT_SHIFT_UP	:: 0x4133_3b315b1b;
 	// ALT_SHIFT_DOWN	:: 0x4233_3b315b1b;

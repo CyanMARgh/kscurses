@@ -4,7 +4,7 @@ ks_bell :: () {
 	bell_str.data, bell_str.count = xx *bell, 1;
 	ks_write(bell_str);
 }
-ENABLE_UI_BELL :: true;
+
 ui_bell :: inline () {
 	#if ENABLE_UI_BELL ks_bell();
 }

@@ -11,6 +11,7 @@ UI_Line_Input :: struct {
 	max_length := 100;
 	view_offset : int;
 }
+
 b_draw_line_input :: (builder : *String_Builder, elem : *UI_Elem, style : *UI_Style) {
 	using ui_line_input : *UI_Line_Input = xx elem;
 	b_move_cursor(builder, zone_current.corner + ivec2.{1, 1});
@@ -48,19 +49,16 @@ handle_key_line_input :: (elem : *UI_Elem, key : Key, is_inside : *bool) {
 
 	move :: (delta : s32, shift : bool) #expand {
 		c2 := `cursor + delta;
-
 		if !shift then `has_selection = false;
 		if shift && !`has_selection {
 			has_selection = true;
 			selection_edge = `cursor;
 		}
-
 		if c2 >= 0 && c2 <= line.count {
 			cursor = c2;
 		} else {
 			 ui_bell();
 		}
-
 	}
 
 	if <<is_inside {

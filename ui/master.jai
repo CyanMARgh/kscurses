@@ -11,6 +11,7 @@ UI_Elem :: struct {
 		SELECT_LIST 	:: 2;
 		BUTTON 			:: 3;
 		LINE_INPUT 		:: 4;
+		EDITOR 			:: 5;
 		// MULTILINE_INPUT	:: 5;
 	}
 	MAX_TYPES :: 10;
@@ -51,12 +52,13 @@ add_link_tb :: (using ui_master : *UI_Master, i : int, j : int) {
 	elems[j].links.top = i;
 }
 
-
+//																															TODO remove it
 b_draw_line :: (builder : *String_Builder, zone : Ibox2, line_id : int, _view : []$T, mode : Graphics_Mode, x_offset : int) -> bool, bool {
 	left_cut, right_cut := false, false;
-
 	view := _view;
 	lmax := zone.width - 2;
+	hmax := zone.height - 3;
+	if line_id < 0 || line_id > hmax return true, true;
 	// left cut
 	if x_offset < 0 {
 		view.count += x_offset;
@@ -94,6 +96,8 @@ b_draw_element :: (builder : *String_Builder, using ui_elem : *UI_Elem, style : 
 		b_draw_select_list(builder, ui_elem, style);
 		case .LINE_INPUT;
 		b_draw_line_input(builder, ui_elem, style);
+		case .EDITOR;
+		b_draw_editor(builder, ui_elem, style);
 	}
 }
 
@@ -120,11 +124,13 @@ init_ui :: () {
 		key_handlers[id] = key_handler;
 		painters[id] = painter;
 	}
+	//TODO use painter
 
 	add_impl(xx UI_Elem.BUTTON, handle_key_button, null);
 	// add_impl(xx UI_Elem.TEXT_BLOCK, handle_key_button, null);
 	add_impl(xx UI_Elem.SELECT_LIST, handle_key_select_list, null);
 	add_impl(xx UI_Elem.LINE_INPUT, handle_key_line_input, null);
+	add_impl(xx UI_Elem.EDITOR, handle_key_editor, null);
 }
 
 handle_key :: (using ui_master : *UI_Master, key : Key) {

@@ -1,6 +1,7 @@
-ENABLE_SIGINT :: false;
-ENABLE_SIGTERM :: true;
-ENABLE_SIGKILL :: true;
+ENABLE_SIGINT	:: false;
+ENABLE_SIGTERM	:: true;
+ENABLE_SIGKILL	:: true;
+ENABLE_UI_BELL	:: true;
 
 #import "Basic"();
 #import "POSIX";
@@ -24,3 +25,13 @@ ENABLE_SIGKILL :: true;
 #load "ui/button.jai";
 #load "ui/select_list.jai";
 #load "ui/anchors.jai";
+#load "ui/editor.jai";
+
+
+
+// TODO test 2 input windows
+// TODO maybe change logger in context
+// TODO make adding new ui types posible
+// TODO multiple scenes & subwindows/ui groups & popus support
+
+// TODO add windows(os) support xd
