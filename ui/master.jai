@@ -1,5 +1,3 @@
-Char_Type :: u8;
-
 UI_Elem :: struct {
 	zone_default : Ibox2;
 	zone_current : Ibox2;
@@ -52,24 +50,20 @@ add_link_tb :: (using ui_master : *UI_Master, i : int, j : int) {
 	elems[j].links.top = i;
 }
 
-//																															TODO remove it
-b_draw_line :: (builder : *String_Builder, zone : Ibox2, line_id : int, _view : []$T, mode : Graphics_Mode, x_offset : int) -> bool, bool {
-	left_cut, right_cut := false, false;
+b_draw_line :: (builder : *String_Builder, zone : Ibox2, line_id : int, _view : []$T, mode : Graphics_Mode, x_offset : int) {
 	view := _view;
 	lmax := zone.width - 2;
 	hmax := zone.height - 3;
-	if line_id < 0 || line_id > hmax return true, true;
+	if line_id < 0 || line_id > hmax return;
 	// left cut
 	if x_offset < 0 {
 		view.count += x_offset;
 		view.data -= x_offset;
 		x_offset = 0;
-		left_cut = true;
 	}
 	// right cut
 	if x_offset + view.count > lmax {
 		view.count = lmax - x_offset;
-		right_cut = true;
 	}
 
 	view_str : string;
@@ -79,38 +73,15 @@ b_draw_line :: (builder : *String_Builder, zone : Ibox2, line_id : int, _view : 
 	if view.count > 0 {
 		b_print(builder, zone.corner + ivec2.{xx(1 + x_offset), xx(1 + line_id)}, mode, "%", view_str);
 	}
-	return left_cut, right_cut;
 }
-b_draw_line :: (builder : *String_Builder, zone : Ibox2, line_id : int, view : string, mode : Graphics_Mode, x_offset : int) -> bool, bool {
-	l, r := b_draw_line(builder, zone, line_id, cast([]u8) view, mode, x_offset);
-	return l, r;
+b_draw_line :: (builder : *String_Builder, zone : Ibox2, line_id : int, view : string, mode : Graphics_Mode, x_offset : int) {
+	b_draw_line(builder, zone, line_id, cast([]u8) view, mode, x_offset);
 }
 b_draw_element :: (builder : *String_Builder, using ui_elem : *UI_Elem, style : *UI_Style) {
-	if ui_elem.type == {
-		case .EMPTY;
-		case .TEXT_BLOCK;
-		b_draw_text_block(builder, ui_elem, style);
-		case .BUTTON;
-		b_draw_button(builder, ui_elem, style);
-		case .SELECT_LIST;
-		b_draw_select_list(builder, ui_elem, style);
-		case .LINE_INPUT;
-		b_draw_line_input(builder, ui_elem, style);
-		case .EDITOR;
-		b_draw_editor(builder, ui_elem, style);
+	painter := painters[cast(int) ui_elem.type];
+	if painter {
+		painter(builder, ui_elem, style);
 	}
-}
-
-// TODO add utils.jai
-array_slice :: (array : []$T, left : int, right : int) -> []T {
-	assert(left <= right && left >= 0 && right <= array.count);
-	result : []T;
-	result.data, result.count = array.data + left, right - left;
-	return result;
-}
-is_printable :: (key : Key) -> bool {
-	code :u64=xx key;
-	return (code >= #char" " && code <= #char"~");
 }
 
 Key_Handler_Type:: #type (*UI_Elem, Key, *bool);
@@ -124,13 +95,12 @@ init_ui :: () {
 		key_handlers[id] = key_handler;
 		painters[id] = painter;
 	}
-	//TODO use painter
 
-	add_impl(xx UI_Elem.BUTTON, handle_key_button, null);
-	// add_impl(xx UI_Elem.TEXT_BLOCK, handle_key_button, null);
-	add_impl(xx UI_Elem.SELECT_LIST, handle_key_select_list, null);
-	add_impl(xx UI_Elem.LINE_INPUT, handle_key_line_input, null);
-	add_impl(xx UI_Elem.EDITOR, handle_key_editor, null);
+	add_impl(xx UI_Elem.BUTTON, handle_key_button, b_draw_button);
+	add_impl(xx UI_Elem.SELECT_LIST, handle_key_select_list, b_draw_select_list);
+	add_impl(xx UI_Elem.LINE_INPUT, handle_key_line_input, b_draw_line_input);
+	add_impl(xx UI_Elem.EDITOR, handle_key_editor, b_draw_editor);
+	add_impl(xx UI_Elem.TEXT_BLOCK, null, b_draw_text_block);
 }
 
 handle_key :: (using ui_master : *UI_Master, key : Key) {

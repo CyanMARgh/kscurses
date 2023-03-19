@@ -1,7 +1,7 @@
 MAX_ATTRS :: 7;
 Graphics_Mode :: struct {
-	foreground : u8;		//TODO u8 -> Color
-	background : u8;
+	foreground : Color;
+	background : Color;
 	attrs : [MAX_ATTRS]bool;
 	// 0 - bold (on/off/keep)
 	// 1 - dim/faint
@@ -56,7 +56,7 @@ Attr :: enum u8 {
 make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Graphics_Mode {
 	result : Graphics_Mode = ---;
 
-	result.foreground = xx foreground;
+	result.foreground = foreground;
 	result.background = xx (background + 10);
 	result.attrs[0] = bold;
 	result.attrs[1] = dim;
@@ -80,20 +80,6 @@ Char :: struct {
 make_char :: (code : u64, foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Char {
 	return .{code = code, mode = make_graphics_mode(foreground, background, bold, dim, italic, underline, blinking, inverse, strikethrough, fcol256, bcol256)};
 }
-length :: (c : Char) -> u8 {
-	// for 0..7 if !c.codes[it] return xx it;
-	// return 8;
+length :: inline (c : Char) -> u8 {
 	return length_code(c.code);
-}
-length_code :: inline (c : u64) -> u8 {
-	for 0..7 {
-		if !c return xx it;
-		c >>= 8;
-	}
-	return 8;
-}
-utf8 :: (str : string) -> u64 {
-	code : u64;
-	memcpy(*code, str.data, str.count);
-	return code;
 }

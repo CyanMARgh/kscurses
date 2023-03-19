@@ -12,7 +12,6 @@ refresh :: (using w : *Window) {
 	builder := String_Builder.{allocator=temp};
 	pix_id : u32 = 0;
 	for y : 0..height-1 {
-		prev_mode : Graphics_Mode; // TODO ???
 		b_move_cursor(*builder, ivec2.{0, y} + corner);
 		for x : 0..width-1 {
 			b_putchar(*builder, chars[pix_id]);

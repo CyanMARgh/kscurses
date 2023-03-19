@@ -18,6 +18,7 @@ ENABLE_UI_BELL	:: true;
 #load "print.jai";
 #load "window.jai";
 #load "style.jai";
+#load "utils.jai";
 
 #load "ui/master.jai";
 #load "ui/text_block.jai";
@@ -26,7 +27,7 @@ ENABLE_UI_BELL	:: true;
 #load "ui/select_list.jai";
 #load "ui/anchors.jai";
 #load "ui/editor.jai";
-
+#load "ui/lang.jai";
 
 
 // TODO test 2 input windows

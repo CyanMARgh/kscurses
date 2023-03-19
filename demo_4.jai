@@ -1,25 +1,31 @@
 demo_4 :: () {
-	init(*input_field);
-	defer {
-		// array_free(input_field.line);
-		clear(*input_field);
-		array_free(debug_output.lines);
+	input_field_text : string;
+
+	{
+		init(*input_field);
+		defer {
+			// array_free(input_field.line);
+			input_field_text = get_string(*input_field);
+			clear(*input_field);
+			array_free(debug_output.lines);
+		}
+		array_resize(*debug_output.lines, 3);
+		ui_master.after_ui_upate = () => {
+			// l, r := selection_edges(*input_field);
+			// debug_output.lines[0] = tprint("l = %", l);
+			// debug_output.lines[1] = tprint("r = %", r);
+			// debug_output.lines[2] = tprint("lc = %", input_field.line.count);
+		};
+		set_elements(*ui_master, *input_field, *debug_output);
+
+		terminal_state.on_resize = () => {
+			ks_refresh(*ui_master);
+		};
+		use_ks_curses();
+		io_cycle(*ui_master);
 	}
-	array_resize(*debug_output.lines, 3);
-	ui_master.after_ui_upate = () => {
-		// l, r := selection_edges(*input_field);
-		// debug_output.lines[0] = tprint("l = %", l);
-		// debug_output.lines[1] = tprint("r = %", r);
-		// debug_output.lines[2] = tprint("lc = %", input_field.line.count);
-	};
-	set_elements(*ui_master, *input_field, *debug_output);
-
-	terminal_state.on_resize = () => {
-		ks_refresh(*ui_master);
-	};
-
-	use_ks_curses();
-	io_cycle(*ui_master);
+	print("======text======\n%================\n", input_field_text);
+	free(input_field_text);
 }
 
 #scope_file

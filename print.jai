@@ -61,25 +61,31 @@ ks_esc_m :: inline ($$code : int) {
 
 
 #scope_file
-//TODO switch to \e[1;34;{...}m maybe
 b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using current : Graphics_Mode) {
-	add_attr_code :: (builder : *String_Builder, prev : bool, current : bool, on_code : Attr, off_code : Attr) { 
-		if prev != current {
-			b_esc_m(builder, xx(ifx current on_code else off_code));
+	printed_first := false;
+	add_code :: (code : u8) #expand {
+		if printed_first {
+			print_to_builder(builder, ";%", code);
+		} else {
+			print_to_builder(builder, "\e[%", code);
+			printed_first = true;
 		}
 	}
+	add_code_on_off :: (prev : bool, current : bool, on_code : Attr, off_code : Attr) #expand { 
+		if prev != current add_code(xx(ifx current on_code else off_code));
+	}
 	if foreground != prev.foreground || fcol256 != prev.fcol256 {
-		if foreground != xx Color.COLOR256 {
-			b_esc_m(builder, foreground);
+		if foreground != Color.COLOR256 {
+			add_code(xx foreground);
 		} else {
-			print_to_builder(builder, "\e[38;5;%m", fcol256);			
+			add_code(38); add_code(5); add_code(xx fcol256);			
 		}
 	}
 	if background != prev.background || bcol256 != prev.bcol256 {
-		if background != xx Color.COLOR256 + 10 {
-			b_esc_m(builder, background);
+		if background != (Color.COLOR256 + 10) {
+			add_code(xx background);
 		} else {
-			print_to_builder(builder, "\e[48;5;%m", bcol256);
+			add_code(48); add_code(5); add_code(xx bcol256);
 		}
 	}
 	if prev.attrs[0] != attrs[0] || prev.attrs[1] != attrs[1] {
@@ -89,15 +95,16 @@ b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using cur
 		on0 := (reset || !prev.attrs[0]) && attrs[0];
 		on1 := (reset || !prev.attrs[1]) && attrs[1];
 
-		if reset b_esc_m(builder, xx Attr.BOLD_AND_DIM_OFF);		
-		if on0 b_esc_m(builder, xx Attr.BOLD);
-		if on1 b_esc_m(builder, xx Attr.DIM);
+		if reset add_code(xx Attr.BOLD_AND_DIM_OFF);		
+		if on0 add_code(xx Attr.BOLD);
+		if on1 add_code(xx Attr.DIM);
 	}
-	add_attr_code(builder, prev.attrs[2], attrs[2], .ITALIC, .ITALIC_OFF);
-	add_attr_code(builder, prev.attrs[3], attrs[3], .UNDERLINE, .UNDERLINE_OFF);
-	add_attr_code(builder, prev.attrs[4], attrs[4], .BLINKING, .BLINKING_OFF);
-	add_attr_code(builder, prev.attrs[5], attrs[5], .INVERSE, .INVERSE_OFF);
-	add_attr_code(builder, prev.attrs[6], attrs[6], .STRIKETHROUGH, .STRIKETHROUGH_OFF);
+	add_code_on_off(prev.attrs[2], attrs[2], .ITALIC, .ITALIC_OFF);
+	add_code_on_off(prev.attrs[3], attrs[3], .UNDERLINE, .UNDERLINE_OFF);
+	add_code_on_off(prev.attrs[4], attrs[4], .BLINKING, .BLINKING_OFF);
+	add_code_on_off(prev.attrs[5], attrs[5], .INVERSE, .INVERSE_OFF);
+	add_code_on_off(prev.attrs[6], attrs[6], .STRIKETHROUGH, .STRIKETHROUGH_OFF);
+	if printed_first append(builder, "m");
 }
 #scope_export
 
@@ -117,20 +124,12 @@ t_mode_set :: (mode : Graphics_Mode) -> string {
 }
 
 
-b_putchar :: (builder : *String_Builder, c : Char/*, coord := ivec2.{-1, -1}*/) {
-	// if coord != ivec2.{-1, -1} b_move_cursor(builder, coord);
+b_putchar :: (builder : *String_Builder, c : Char) {
 	b_mode_set(builder, c.mode);
-
 	b_putchar(builder, c.code);
-	// char_str : string;
-	// char_str.data = xx *(c.code);
-	// char_str.count = length(c);
-	// append(builder, char_str);
 }
 
-b_putchar :: inline (builder : *String_Builder, code : u64/*, coord := ivec2.{-1, -1}*/) {
-	// if coord != ivec2.{-1, -1} b_move_cursor(builder, coord);
-	// b_mode_set(builder, c.mode);
+b_putchar :: inline (builder : *String_Builder, code : u64) {
 	char_str : string;
 	char_str.data = xx *(code);
 	char_str.count = length_code(code);
