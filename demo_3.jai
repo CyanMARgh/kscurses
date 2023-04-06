@@ -1,69 +1,74 @@
 demo_3 :: () {
-	set_elements(*ui_master, *left_box, *middle_box, *right_box, *select_list);
-	defer reset_log();
-	add_link_lr(*ui_master, 0, 1);
-	add_link_lr(*ui_master, 1, 2);
-	add_link_tb(*ui_master, 0, 3);
-	terminal_state.on_resize = () => {ks_refresh(*ui_master);};
+	on_resize := () {
+		builder := String_Builder.{allocator = temp};
+		resize_clear(*canvas, Ibox2.{size = terminal_state.size});
+		// c_fill(*canvas, make_char(#char"@", foreground = .BRIGHT_YELLOW, background = .BLACK));
+		c_fill(*canvas, fill_function);
+		c := make_char(#char"@", foreground = .BRIGHT_YELLOW, background = .BLACK);
+
+		b_draw_canvas(*builder, *canvas);
+		c_putchar(*canvas, c, .{1, 1});
+		c_putchar(*canvas, c, .{2, 2});
+		c_putchar(*canvas, c, .{3, 3});
+		b_draw_canvas(*builder, *canvas);
+
+		ks_write(builder_to_string(*builder, allocator = temp));
+		reset_temporary_storage();
+	};
+	terminal_state.on_resize = on_resize;
+
 	use_ks_curses();
-	io_cycle(*ui_master);
+	on_resize();
+
+	// while 1 {
+	// 	arr := NewArray(100000, int);
+	// 	assert(xx arr.data);
+	// 	array_free(arr);
+	// }
+
+	defer deinit(*canvas);
+
+	input := ks_getch();
+
+	// refresh_all :: () {
+	// 	using terminal_state;
+	// 	ks_clear_screen();
+	// 	resize_no_fill(*main_window, .{size=size});
+	// 	fill(*main_window, fill_function);
+	// 	refresh(*main_window);
+	// };
+	// terminal_state.on_resize = refresh_all;
+
+	// use_ks_curses();
+
+	// defer clear(main_window);
+
+	// input := ks_getch();
 }
 
 #scope_file
-left_box := UI_Button.{
-	zone_default = .{
-		corner = .{0, 0},
-		size = .{20, 10}
-	},
-	on_click = () => {
-		if select_list.selected != -1 {
-			fruit := select_list.options[select_list.selected];
-			array_add(*app_state.log_lines, sprint("(%) %", app_state.counter, fruit));
-			app_state.counter += 1;
-			middle_box.lines = app_state.log_lines;
-		}
-	},
-	text = "click me!"
-};
-middle_box := UI_Text_Block.{
-	zone_default = .{
-		corner = .{20, 0},
-		size = .{10, 10}
-	},
-	scale_mode = anchor_t
-};
-select_list := UI_Select_List.{
-	zone_default = .{
-		corner = .{0, 10},
-		size = .{20, 10}
-	},
-	scale_mode = anchor_lt,
-	options = .["banana", "apple", "apricot"]
-};
 
-right_box := UI_Button.{
-	zone_default = .{
-		corner = .{30, 0},
-		size = .{20, 10}
-	},
-	scale_mode = anchor_rt,
-	on_click = reset_log,
-	text = "me too!"
-};
+canvas : Canvas;
 
-//TODO mark elements, that should be refreshed
-//TODO "sure you want to exit?" & popups/multiple screens at all
-ui_master := UI_Master.{
-	size_min = .{40, 20},
-	size_default = .{50, 30}
-};
+// main_window : Window;
 
-app_state : struct {
-	log_lines : [..]string;
-	counter := 0;
+fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
+	size := zone.size;
+	return find_best_char(.{
+		xx (coord.x * 255 / (size.x - 1)),
+		xx (coord.y * 255 / (size.y - 1)),
+		0
+	});
 }
-reset_log :: () {
-	for app_state.log_lines free(it);
-	array_reset(*(app_state.log_lines));
-	middle_box.lines = app_state.log_lines;
+find_best_char :: (p : u8vec3) -> Char {
+	r6 := cast(u16)p.x * 6 / 256;
+	g6 := cast(u16)p.y * 6 / 256;
+	b6 := cast(u16)p.z * 6 / 256;
+
+	x := 16 + 36 * r6 + 6 * g6 + b6;
+	return make_char(
+		utf8(" "),
+		background = .COLOR256,
+		bcol256 = cast(u8)x 
+	);
 }

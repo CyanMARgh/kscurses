@@ -1,34 +1,62 @@
 UI_Select_List :: struct {
 	#as using base : UI_Elem = .{type = .SELECT_LIST};
-	options : []string; // -> [][]Char_Type
+	// only_one := true;
+	options : []string;
 	selected := -1;
-	cursor := -1;
+	cursor, offset := 0, 0;
 }
-b_draw_select_list :: (builder : *String_Builder, elem : *UI_Elem, style : *UI_Style) {
-	using ui_select_list : *UI_Select_List = xx elem;	
-	rows := min(cast(int)(zone_current.height - 2), options.count);
-	for i : 0..rows-1 {
-		mode := ifx i == cursor
+handle_key_select_list :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
+	using cast(*UI_Select_List) ui_elem;
+	assert(cursor_state != .OUTSIDE);
+	if cursor_state == .ON {
+		if key == .ENTER {
+			cursor_state = .IN;
+			return true;
+		} else {
+			return handle_key_move(ui_elem, key);
+		}
+	} else {
+		if key == {
+			case .DOWN;
+			if cursor < options.count - 1 then cursor += 1;
+			case .UP;
+			if cursor > 0 then cursor -= 1;
+			case .ESCAPE;
+			cursor_state = .ON;
+			case .ENTER;
+			if cursor == selected {
+				selected = -1;
+			} else {
+				selected = cursor;
+			}
+			case;
+			return false;
+		}
+		return true;
+	}
+}
+c_draw_select_list :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
+	using cast(*UI_Select_List) ui_elem;
+
+	rows := min(cast(int) zone.height, options.count - offset);
+
+	fix_offset :: () #expand {
+		if cursor - offset < 0 {
+			offset = cursor;
+		} else if cursor - offset >= zone.height {
+			offset = cursor - zone.height + 1;
+		}
+	}
+	// TODO fix_cursor_and_offset()
+	fix_offset();
+
+	for y : 0..rows-1 {
+		i := y + offset;
+		mode := ifx i == cursor && cursor_state == .IN
 					ifx i == selected style.text.cursor_and_selection else style.text.cursor
 				else
 					ifx i == selected style.text.selection else style.text.default;
-		b_draw_line(builder, zone_current, i, options[i], mode, 0);
+		c_draw_line_ascii(canvas, options[i], zone, .{0, xx y}, mode);
 	}
-}
-handle_key_select_list :: (elem : *UI_Elem, key : Key, is_inside : *bool) {
-	select_list := cast(*UI_Select_List)elem;
-	if !<<is_inside {
-		<<is_inside = true;
-		select_list.cursor = 0;
-	} else if key == {
-		case .ESCAPE;
-		select_list.cursor = -1;
-		<<is_inside = false;
-		case .UP;
-		if(select_list.cursor > 0) select_list.cursor -= 1;
-		case .DOWN;
-		if(select_list.cursor < select_list.options.count - 1) select_list.cursor += 1;
-		case .ENTER;
-		select_list.selected = ifx select_list.selected == select_list.cursor then -1 else select_list.cursor;
-	}
+	return true;
 }

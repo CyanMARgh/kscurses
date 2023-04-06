@@ -1,8 +1,11 @@
+
 Key :: enum u64 {
-	UP				:: 0x415B1B;
-	DOWN			:: 0x425B1B;
-	RIGHT			:: 0x435B1B;
-	LEFT			:: 0x445B1B;
+	READ_ERROR		:: 0xffffffff_ffffffff;
+
+	UP				:: 0x41_5b1b;
+	DOWN			:: 0x42_5b1b;
+	RIGHT			:: 0x43_5b1b;
+	LEFT			:: 0x44_5b1b;
 
 	CTRL_UP 		:: 0x4135_3b315b1b;
 	CTRL_DOWN 		:: 0x4235_3b315b1b;
@@ -27,6 +30,7 @@ Key :: enum u64 {
 	CTRL_C			:: 0x03;
 	CTRL_V			:: 0x16;
 	CTRL_X			:: 0x18;
+	CTRL_Y			:: 0x19;
 	CTRL_Z			:: 0x1A;
 
 	// ALT_SHIFT_UP	:: 0x4133_3b315b1b;
@@ -39,13 +43,19 @@ Key :: enum u64 {
 	BACKSPACE		:: 0x7F;
 	DELETE			:: 0x7E335B1B;
 }
-ks_getch :: () -> Key {
+// TODO add autoinput
+ks_getch :: (block := true) -> Key {
 	buf : u64 = 0;
 	// still not sure is it proper way to read key-by-key
 	// but not noticed any bugs now 
 	while 1 {
 		l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
-		if l > 0 break;
+		if l > 0 {
+			break;
+		} else if !block {
+			buf = xx Key.READ_ERROR;
+			break;
+		}
 	}
 	get_exit_code :: inline (code : u64) -> s32 {
 		#if ENABLE_SIGINT if code == 3 return 130;
@@ -70,5 +80,7 @@ ks_write :: (str : string) {
 		} else if r >= 0 {
 			printed += r;
 		}
-	}	
+	}
+	__write_counter += str.count;
 }
+__write_counter := 0; //TODO

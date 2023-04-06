@@ -2,7 +2,7 @@ MAX_ATTRS :: 7;
 Graphics_Mode :: struct {
 	foreground : Color;
 	background : Color;
-	attrs : [MAX_ATTRS]bool;
+	attrs : [MAX_ATTRS]bool; //TODO to flags
 	// 0 - bold (on/off/keep)
 	// 1 - dim/faint
 	// 2 - italic
@@ -72,14 +72,27 @@ make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT,
 }
 
 Char :: struct {
-	code : u64;
+	code : u32;
 	#place code;
-	codes : [8]u8 = ---;
+	codes : [4]u8 = ---;
 	mode : Graphics_Mode;
 }
-make_char :: (code : u64, foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Char {
+make_char :: (code : u32, foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Char {
 	return .{code = code, mode = make_graphics_mode(foreground, background, bold, dim, italic, underline, blinking, inverse, strikethrough, fcol256, bcol256)};
 }
 length :: inline (c : Char) -> u8 {
 	return length_code(c.code);
+}
+operator== :: (c1 : Char, c2 : Char) -> bool {
+	return c1.code == c2.code && c1.mode == c2.mode;
+}
+operator== :: (m1 : Graphics_Mode, m2 : Graphics_Mode) -> bool {
+	if m1.foreground != m2.foreground return false;
+	if m1.background != m2.background return false;
+	if m1.fcol256 != m2.fcol256 return false;
+	if m1.bcol256 != m2.bcol256 return false;
+	for i : 0..MAX_ATTRS-1 {
+		if m1.attrs[i] != m2.attrs[i] return false;
+	}
+	return true;
 }

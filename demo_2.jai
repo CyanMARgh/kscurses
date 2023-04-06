@@ -25,7 +25,7 @@ demo_2 :: () {
 
 #scope_file
 
-main_window : Window;
+main_canvas : Canvas;
 
 find_best_char :: (p : u8vec3) -> Char {
 	r6 := cast(u16)p.x * 6 / 256;

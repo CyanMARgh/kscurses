@@ -113,6 +113,7 @@ b_mode_reset :: (builder : *String_Builder) {
 	b_esc_m(builder, 0);
 	terminal_state.last_mode = .{};
 }
+//TODO add ks_ and t_ mode_(re)set
 b_mode_set :: (builder : *String_Builder, using mode : Graphics_Mode) {
 	b_mode_difference(builder, terminal_state.last_mode, mode);
 	terminal_state.last_mode = mode;

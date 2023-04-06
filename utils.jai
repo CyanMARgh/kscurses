@@ -12,8 +12,9 @@ length_code :: inline (c : u64) -> u8 {
 	}
 	return 8;
 }
-utf8 :: (str : string) -> u64 {
-	code : u64;
+utf8 :: (str : string) -> u32 {
+	code : u32;
+	assert(str.count <= 4);
 	memcpy(*code, str.data, str.count);
 	return code;
 }
@@ -23,10 +24,15 @@ byteswap_64 :: (c : u64) -> u64 {
 	c = ((0xFF00FF00FF00FF00 & c) >>  8) | ((0x00FF00FF00FF00FF & c) <<  8);
 	return c;
 }
-char_bs :: (code : u64) -> u64 {
-	l := length_code(code);
-	return byteswap_64(code) >> ((8 - l) * 8);
+byteswap_32 :: (c : u32) -> u32 {
+	c = ((0xFFFF0000 & c) >> 16) | ((0x0000FFFF & c) << 16);
+	c = ((0xFF00FF00 & c) >>  8) | ((0x00FF00FF & c) <<  8);
+	return c;
 }
-utf8_bs :: (str : string) -> u64 {
+char_bs :: (code : u32) -> u32 {
+	l := length_code(code);
+	return byteswap_32(code) >> ((8 - l) * 8);
+}
+utf8_bs :: (str : string) -> u32 {
 	return char_bs(utf8(str));
 }

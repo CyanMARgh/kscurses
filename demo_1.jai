@@ -1,3 +1,5 @@
+//TODO fix thread errors
+
 demo_1 :: () {
 	init(*win_mtx);
 	init(*buf_mtx);
@@ -13,7 +15,6 @@ demo_1 :: () {
 	defer plm_destroy(plm);
 
 	update_frame :: () {
-		lock(*buf_mtx); defer unlock(*buf_mtx);
 		if !video_runs return;
 		defer frame_id += 1;
 		frame := decode_video(plm);
@@ -23,36 +24,28 @@ demo_1 :: () {
 		}
 		frame_to_rgb(frame, xx rgb_buffer.data, video_size.x * 3);
 	}
-	fill_function :: (coord : ivec2, size : ivec2) -> Char {
-		_x, _y := coord.x * (video_size.x - 1) / size.x, coord.y * (video_size.y - 1) / size.y;
+	fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
+		_x, _y := coord.x * (video_size.x - 1) / zone.width, coord.y * (video_size.y - 1) / zone.height;
 		pixel := rgb_buffer[_y * video_size.x + _x];
 		return find_best_char(pixel, true/*coord.x * 2 < size.x*/);
 	}
 	update_frame();
 
 	refresh_all :: () {
-		// lock(*win_mtx); defer unlock(*win_mtx);
-		// lock(*buf_mtx); defer unlock(*buf_mtx);
-		// lock(*win_mtx);
-			using terminal_state;
-			resize_no_fill(*main_window, .{size=size});
-			fill(*main_window, fill_function);
-			refresh(*main_window);
-			if !video_runs ks_print(.{2, 2}, make_graphics_mode(foreground = .BLACK, background = .GREEN), "press any key to exit.");
-		// unlock(*win_mtx);
+		using terminal_state;
+		resize_clear(*main_canvas, .{size = size});
+		// resize_no_fill(*main_window, .{size=size});
+		c_fill(*main_canvas, fill_function);
+		ks_draw_canvas(*main_canvas);
+		if !video_runs ks_print(.{2, 2}, make_graphics_mode(foreground = .BLACK, background = .GREEN), "press any key to exit.");
 	}
-
-	terminal_state.on_resize = () => {
-		lock(*win_mtx); defer unlock(*win_mtx);
-		refresh_all();
-	};
 	
 	{
 		use_ks_curses();
 			
 		defer {
-			lock(*win_mtx); defer unlock(*win_mtx);
-			clear(main_window);
+			lock(*buf_mtx); defer unlock(*buf_mtx);
+			deinit(*main_canvas);
 		}
 
 		render_cycle :: (thread : *Thread) -> s64 {
@@ -61,7 +54,7 @@ demo_1 :: () {
 			while video_runs && !forced_exit {
 				ti := to_milliseconds(current_time_monotonic());
 				{
-					lock(*win_mtx); defer unlock(*win_mtx);
+					lock(*buf_mtx); defer unlock(*buf_mtx);
 					update_frame();
 					refresh_all();
 				}
@@ -75,7 +68,13 @@ demo_1 :: () {
 		defer thread_deinit(*render_thread);
 		thread_start(*render_thread);
 
-		c := ks_getch();
+		while 1 {
+			c := ks_getch(block = false);
+			if c != .READ_ERROR break;	
+			lock(*buf_mtx); defer unlock(*buf_mtx);
+			refresh_all();
+		}
+
 		forced_exit = true;
 		while !thread_is_done(*render_thread) { }
 	}
@@ -143,5 +142,5 @@ forced_exit := false;
 
 FPS :: 25;
 
-main_window : Window;
+main_canvas : Canvas;
 win_mtx : Mutex;

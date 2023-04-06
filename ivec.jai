@@ -39,6 +39,18 @@ Ibox2 :: struct {
 	#place left;
 	corner : ivec2;
 }
+operator== :: (a : Ibox2, b : Ibox2) -> bool {
+	return a.size == b.size && a.corner == b.corner;
+}
+is_empty :: (box : Ibox2) -> bool {
+	return box.size == .{0, 0};
+}
+is_invalid :: (box : Ibox2) -> bool {
+	return box.width < 0 || box.height < 0;
+}
+point_inside :: (point : ivec2, zone : Ibox2) -> bool {
+	return point.x >= zone.left && point.y >= zone.top && point.x < zone.left + zone.width && point.y < zone.top + zone.height;
+}
 inside :: (inner : Ibox2, outer : Ibox2) -> bool {
 	icorner2 := inner.corner + inner.size;
 	ocorner2 := outer.corner + outer.size;
@@ -54,4 +66,7 @@ inside :: (inner : Ibox2, outer : ivec2) -> bool {
 }
 inside :: (inner : ivec2, outer : ivec2) -> bool {
 	return inner.x <= outer.x && inner.y <= outer.y;
+}
+cut_border :: (box : Ibox2, gap : int) -> Ibox2 {
+	return .{width = xx(box.width - 2 * gap), height = xx(box.height - 2 * gap), left = xx(box.left + gap), top = xx(box.top + gap)};
 }
