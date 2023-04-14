@@ -55,11 +55,7 @@ _struct_lambda :: ($code_src : Code) -> Code {
 	};
 	return compiler_get_code(*node_assign);
 }
-//TODO input += gen_pair:bool
-//TODO auto #run
-//TODO add support for non-"proc/data" names
 split_src :: (gen_pair : bool, node_src : *Code_Node) -> proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block #expand {
-	//=================
 	offset := ifx gen_pair then 1 else 2;
 
 	assert(node_src.kind == .BLOCK);
@@ -160,12 +156,7 @@ gen_struct_type_node :: (names : []string, names_field : []string) -> *Code_Node
 	};
 	return *node_struct;
 }
-//TODO better assertions
-//TODO input = proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block
 get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block) -> pair_names:*Code_Node, pair_srcs:*Code_Node #expand {
-	// node_src := compiler_get_nodes(code_src);
-	// proc_node, data_node, names, names_field, node_header, node_block := split_src(false, node_src);
-
 	node_0 := gen_struct_type_node(names, names_field);
 	node_1 := Code_Unary_Operator.{
 		kind = .UNARY_OPERATOR,
@@ -253,7 +244,6 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 			operator_type = #char"*"
 		};
 		nodes_14_ptr[i] = *(nodes_14[i]);
-		// print_node(nodes_14_ptr[i]);
 	}
 	node_15 := Code_Type_Instantiation.{
 		kind = .TYPE_INSTANTIATION,
@@ -281,14 +271,6 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 		kind = .COMMA_SEPARATED_ARGUMENTS,
 		expressions = exprs
 	};
-	// node_20 := Code_Ident.{
-	// 	kind = .IDENT,
-	// 	name = proc_name
-	// };
-	// node_21 := Code_Ident.{
-	// 	kind = .IDENT,
-	// 	name = data_name
-	// };
 	exprs2 : [2]*Code_Node;
 	exprs2[0] = proc_node;
 	exprs2[1] = data_node;

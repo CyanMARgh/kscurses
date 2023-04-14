@@ -2,7 +2,16 @@ MAX_ATTRS :: 7;
 Graphics_Mode :: struct {
 	foreground : Color;
 	background : Color;
-	attrs : [MAX_ATTRS]bool; //TODO to flags
+	attr_flags : enum_flags u8 {
+		F_BOLD 			:: 0x1; 
+		F_DIM 			:: 0x2; 
+		F_ITALIC 		:: 0x4; 
+		F_UNDERLINE 	:: 0x8; 
+		F_BLINKING 		:: 0x10; 
+		F_INVERSE 		:: 0x20; 
+		F_STRIKETHROUGH :: 0x40; 
+	}
+	// attrs : [MAX_ATTRS]bool;
 	// 0 - bold (on/off/keep)
 	// 1 - dim/faint
 	// 2 - italic
@@ -54,17 +63,27 @@ Attr :: enum u8 {
 }
 
 make_graphics_mode :: (foreground := Color.DEFAULT, background := Color.DEFAULT, bold := false, dim := false, italic := false, underline := false, blinking := false, inverse := false, strikethrough := false, fcol256 :u8= 0, bcol256 :u8= 0) -> Graphics_Mode {
-	result : Graphics_Mode = ---;
+	result : Graphics_Mode;
 
 	result.foreground = foreground;
 	result.background = xx (background + 10);
-	result.attrs[0] = bold;
-	result.attrs[1] = dim;
-	result.attrs[2] = italic;
-	result.attrs[3] = underline;
-	result.attrs[4] = blinking;
-	result.attrs[5] = inverse;
-	result.attrs[6] = strikethrough;
+
+	if bold 			result.attr_flags |= .F_BOLD;
+	if dim  			result.attr_flags |= .F_DIM;
+	if italic 			result.attr_flags |= .F_ITALIC;
+	if underline 		result.attr_flags |= .F_UNDERLINE;
+	if blinking 		result.attr_flags |= .F_BLINKING;
+	if inverse 			result.attr_flags |= .F_INVERSE;
+	if strikethrough	result.attr_flags |= .F_STRIKETHROUGH;
+	//========
+
+	// result.attrs[0] = bold;
+	// result.attrs[1] = dim;
+	// result.attrs[2] = italic;
+	// result.attrs[3] = underline;
+	// result.attrs[4] = blinking;
+	// result.attrs[5] = inverse;
+	// result.attrs[6] = strikethrough;
 	result.fcol256 = fcol256;
 	result.bcol256 = bcol256;
 
@@ -91,8 +110,6 @@ operator== :: (m1 : Graphics_Mode, m2 : Graphics_Mode) -> bool {
 	if m1.background != m2.background return false;
 	if m1.fcol256 != m2.fcol256 return false;
 	if m1.bcol256 != m2.bcol256 return false;
-	for i : 0..MAX_ATTRS-1 {
-		if m1.attrs[i] != m2.attrs[i] return false;
-	}
+	if m1.attr_flags != m2.attr_flags return false;
 	return true;
 }

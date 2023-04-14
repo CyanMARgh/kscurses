@@ -3,7 +3,7 @@ UI_Parent :: struct {
 	active_element : *UI_Elem;
 }
 
-__last_set : *UI_Elem; // TODO
+__last_set : *UI_Elem;
 
 set_active_recursive :: (ui_elem : *UI_Elem) {
 	assert(!__last_set); __last_set = ui_elem;

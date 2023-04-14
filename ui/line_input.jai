@@ -4,16 +4,71 @@ UI_Line_Input :: struct {
 	buffer : []Char_Type;
 
 	// resizeable := false;
-	// TODO add ability to resize
 	ptr_left, ptr_right : int;
-	view_offset : int;
+	offset : int;
 }
 
 handle_key_line_input :: (ui_elem : *UI_Elem, key : Key) -> bool {
-	//===
+	using ui_line_input := cast(*UI_Line_Input) ui_elem;
+
+	handle_inner :: (using ui_line_input : *UI_Line_Input, key : Key) -> bool {
+		if is_printable(key) {
+			return add_char(ui_line_input, xx key);
+		} else if key == {
+			case .LEFT; #through;
+			case .RIGHT;
+			return move_ptr(ui_line_input, key);
+			case .BACKSPACE;
+			return remove_char_left(ui_line_input);
+			case .ESCAPE;
+			cursor_state = .ON;
+			return true;
+		}
+		return false;		
+	}
+
+	if cursor_state == .IN {
+		return handle_inner(ui_line_input, key);
+	} else if cursor_state == .ON {
+		if handle_key_move(ui_elem, key) return true;
+		if key == .ENTER {
+			cursor_state = .IN;
+			return true;
+		}
+		if handle_inner(ui_line_input, key) {
+			cursor_state = .IN;
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		assert(false);
+	}
+	return false;
 }
 c_draw_line_input :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
-	//===
+	using cast(*UI_Line_Input) ui_elem;
+
+	fix_offset :: () #expand {
+		if ptr_left - offset < 0 {
+			offset = ptr_left;
+		} else if ptr_left - offset >= zone.width {
+			offset = ptr_left - zone.width + 1;
+		}
+	}
+	fix_offset();
+
+	left_part, right_part : string;
+	left_part.data, left_part.count = buffer.data, ptr_left;
+
+	right_part.data, right_part.count = buffer.data + ptr_right + 1, (buffer.count - ptr_right - 1);
+
+	c_draw_line_ascii(canvas, left_part, zone, .{xx -offset, 0}, style.text.default);
+	c_draw_line_ascii(canvas, right_part, zone, .{xx (ptr_left - offset), 0}, style.text.default);
+
+	terminal_state.cursor = ifx cursor_state == .IN then zone.corner + ivec2.{xx(ptr_left - offset), 0} else .{-1, -1};
+
+	return true;
 }
 
 init :: (using ui_line_input : *UI_Line_Input, max_length := 100) {
@@ -54,4 +109,24 @@ move_ptr :: (using ui_line_input : *UI_Line_Input, key : Key) -> bool {
 }
 deinit :: (using ui_line_input : *UI_Line_Input) {
 	array_free(buffer);
+}
+
+is_printable :: (key : Key) -> bool {
+	code := cast(u64) key;
+	return (code >= #char" " && code <= #char"~");
+}
+
+get_string :: (using ui_line_input : *UI_Line_Input) -> string {
+	result : string;
+	size := ptr_left + (buffer.count - ptr_right - 1);
+	result.count = size;
+	result.data = alloc(size);
+
+	memcpy(result.data, buffer.data, ptr_left);
+	memcpy(result.data + ptr_left, buffer.data + ptr_right + 1, buffer.count - ptr_right - 1);
+	return result;
+}
+reset :: (using ui_line_input : *UI_Line_Input) {
+	ptr_left = 0;
+	ptr_right = buffer.count - 1;
 }

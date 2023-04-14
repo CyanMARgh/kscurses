@@ -20,6 +20,11 @@ UI_Elem :: struct {
 		left, right, bottom, top, inner, outer : *UI_Elem;
 		parent : *UI_Parent;
 	}
+
+	extra_handler : struct {
+		proc : (key : Key, data : *void) -> bool = null;
+		data : *void;
+	}
 }
 
 c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
@@ -42,6 +47,8 @@ c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI
 		return c_draw_scene_manager(canvas, ui_elem, content_zone, style);
 		case .POPUP_MANAGER;
 		return c_draw_popup_manager(canvas, ui_elem, content_zone, style);
+		case .LINE_INPUT;
+		return c_draw_line_input(canvas, ui_elem, content_zone, style);
 		case;
 		assert(false);
 	}
@@ -104,8 +111,13 @@ handle_key :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		handled = handle_key_scene_manager(ui_elem, key);
 		case .POPUP_MANAGER;
 		handled = handle_key_popup_manager(ui_elem, key);
+		case .LINE_INPUT;
+		handled = handle_key_line_input(ui_elem, key);
 		case;
 		assert(false);
+	}
+	if !handled && extra_handler.proc {
+		handled = extra_handler.proc(key, extra_handler.data);
 	}
 	return handled;
 }

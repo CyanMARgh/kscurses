@@ -1,7 +1,6 @@
 mode_black_and_white :: #run make_graphics_mode(foreground = .BRIGHT_WHITE, background = .BLACK);
 
 Box_Style :: struct {
-	//TODO 16 chars support
 	lt, rt, lb, rb, l, r, t, b, c : u32;
 	mode_border, mode_space, mode_no_border := mode_black_and_white;
 }
@@ -50,7 +49,7 @@ UI_Style :: struct {
 
 c_box :: (canvas : *Canvas, zone : Ibox2, using box_style : Box_Style, border := true) -> bool {
 	if !inside(ifx border then ivec2.{2, 2} else ivec2.{0, 0}, zone.size) return false;
-	assert(inside(zone, canvas.zone)); // TODO maybe remove
+	assert(inside(zone, canvas.zone));
 	if border {
 		c_putchar(canvas, .{code = lt, mode = mode_border}, zone.corner);
 		for x : 1..zone.width-2 {

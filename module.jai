@@ -32,18 +32,31 @@ KEEP_CLIPBOARD	:: true; // true now for debug purposes
 #load "ui/parent.jai";
 #load "ui/scene_manager.jai";
 #load "ui/popup_manager.jai";
+#load "ui/line_input.jai";
 
 #load "lambdas.jai";
 
-// TODO find all TODO's
+// TODO:
 
-// TODO test 2 input windows
-// TODO maybe change logger in context
-// TODO make adding new ui types posible
-// TODO popus support
-// TODO add meaningfull assertion text
-// TODO add extra_handler :: (key : Key, *data)
-// TODO UI_Scene <- UI_Popup
-// TODO painter/handler vtables
+// restore old demos
 
-// TODO add windows(os) support xd
+// (maybe) change logger in context
+// add meaningfull assertion text
+// UI_Scene <- UI_Popup
+// painter/handler vtables
+// make adding new ui types posible
+// solve the problem with multithreading and canvas.
+// replace []bool modes with flags
+// autogrow in line_input
+// detection of the element on which rendering breaks
+// extra debug lines on top
+// extra_handler :: (key : Key, *data)
+// scalable group / group view
+// 16 char support in box
+// make u8/u32 modes in text_buf line_input
+// add block_input
+// add windows(os) support xd
+// (maybe) unset_active_recursive without arguments
+
+// add module parameters 
+// make better how_to

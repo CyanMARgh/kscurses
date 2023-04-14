@@ -42,15 +42,11 @@ resize_clear :: (using canvas : *Canvas, new_zone : Ibox2, filler := Char.{}) {
 	refresh_all = true;
 }
 b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
-	// if !inside(zone, terminal_state.size) exit(2);
-	// TODO make cutoff instead
-
 	if refresh_all {
 		i := 0;
 		for y : 0..zone.height-1 {
 			b_move_cursor(builder, zone.corner + ivec2.{0, y});
 			for x : 0..zone.width-1 {
-				//TODO skip printed
 				b_putchar(builder, pixels_buf[i]);
 				pixels_last_draw[i] = pixels_buf[i];
 				links[i] = .{-1, -1};
@@ -70,8 +66,6 @@ b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 			pos := ivec2.{xx(current % zone.width), xx(current / zone.width)} + zone.corner;
 			if pos.x != last_pos.x + 1 || pos.y != last_pos.y {
 				b_move_cursor(builder, pos);
-			} else {
-				// assert(false);
 			}
 			b_putchar(builder, pixels_buf[current]);
 			pixels_last_draw[current] = pixels_buf[current];

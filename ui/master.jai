@@ -13,6 +13,8 @@ UI_Master :: struct {
 
 draw :: (using ui_master : *UI_Master) {
 	new_zone := Ibox2.{size = terminal_state.size};
+	builder : String_Builder;
+
 	if new_zone != canvas.zone {
 		resize_clear(*canvas, new_zone);
 	}
@@ -20,12 +22,14 @@ draw :: (using ui_master : *UI_Master) {
 	if ok {
 		ks_draw_canvas(*canvas);
 	} else {
-		builder : String_Builder;
 		b_mode_set(*builder, style.text.default);
 		b_clear_screen(*builder);
 		b_print(*builder, .{0, 0}, style.text.debug, "screen to small: %x%", terminal_state.size.x, terminal_state.size.y);
-		ks_write(builder_to_string(*builder, allocator = temp));
 	}
+	b_cursor_set_visibility(*builder, terminal_state.cursor != ivec2.{-1, -1});
+	if terminal_state.cursor != ivec2.{-1, -1} then b_move_cursor(*builder, terminal_state.cursor);
+
+	ks_write(builder_to_string(*builder, allocator = temp));
 	reset_temporary_storage();
 }
 

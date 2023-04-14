@@ -43,7 +43,6 @@ Key :: enum u64 {
 	BACKSPACE		:: 0x7F;
 	DELETE			:: 0x7E335B1B;
 }
-// TODO add autoinput
 ks_getch :: (block := true) -> Key {
 	buf : u64 = 0;
 	// still not sure is it proper way to read key-by-key
@@ -83,4 +82,4 @@ ks_write :: (str : string) {
 	}
 	__write_counter += str.count;
 }
-__write_counter := 0; //TODO
+__write_counter := 0;

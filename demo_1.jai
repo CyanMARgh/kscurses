@@ -1,5 +1,3 @@
-//TODO fix thread errors
-
 demo_1 :: () {
 	init(*win_mtx);
 	init(*buf_mtx);

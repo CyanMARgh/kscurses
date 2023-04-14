@@ -1,4 +1,3 @@
-// TODO add utf version/mode
 UI_Text_Buf :: struct {
 	#as using base : UI_Elem = .{type = .TEXT_BUF};
 	lines : []string;

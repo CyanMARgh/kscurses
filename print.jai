@@ -88,32 +88,26 @@ b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using cur
 			add_code(48); add_code(5); add_code(xx bcol256);
 		}
 	}
-	if prev.attrs[0] != attrs[0] || prev.attrs[1] != attrs[1] {
-		off0 := prev.attrs[0] && !attrs[0];
-		off1 := prev.attrs[1] && !attrs[1];
+	if prev.attr_flags & 1 != attr_flags & 1 || prev.attr_flags & 2 != attr_flags & 2 {
+		off0 := (prev.attr_flags & 1) && (attr_flags & 1);
+		off1 := (prev.attr_flags & 2) && (attr_flags & 2);
 		reset := off0 || off1;
-		on0 := (reset || !prev.attrs[0]) && attrs[0];
-		on1 := (reset || !prev.attrs[1]) && attrs[1];
+		on0 := (reset || (prev.attr_flags & 1)) && (attr_flags & 1);
+		on1 := (reset || (prev.attr_flags & 2)) && (attr_flags & 2);
 
 		if reset add_code(xx Attr.BOLD_AND_DIM_OFF);		
 		if on0 add_code(xx Attr.BOLD);
 		if on1 add_code(xx Attr.DIM);
 	}
-	add_code_on_off(prev.attrs[2], attrs[2], .ITALIC, .ITALIC_OFF);
-	add_code_on_off(prev.attrs[3], attrs[3], .UNDERLINE, .UNDERLINE_OFF);
-	add_code_on_off(prev.attrs[4], attrs[4], .BLINKING, .BLINKING_OFF);
-	add_code_on_off(prev.attrs[5], attrs[5], .INVERSE, .INVERSE_OFF);
-	add_code_on_off(prev.attrs[6], attrs[6], .STRIKETHROUGH, .STRIKETHROUGH_OFF);
+	add_code_on_off(xx prev.attr_flags &  4, xx attr_flags &  4, .ITALIC, .ITALIC_OFF);
+	add_code_on_off(xx prev.attr_flags &  8, xx attr_flags &  8, .UNDERLINE, .UNDERLINE_OFF);
+	add_code_on_off(xx prev.attr_flags & 16, xx attr_flags & 16, .BLINKING, .BLINKING_OFF);
+	add_code_on_off(xx prev.attr_flags & 32, xx attr_flags & 32, .INVERSE, .INVERSE_OFF);
+	add_code_on_off(xx prev.attr_flags & 64, xx attr_flags & 64, .STRIKETHROUGH, .STRIKETHROUGH_OFF);
 	if printed_first append(builder, "m");
 }
 #scope_export
 
-
-b_mode_reset :: (builder : *String_Builder) {
-	b_esc_m(builder, 0);
-	terminal_state.last_mode = .{};
-}
-//TODO add ks_ and t_ mode_(re)set
 b_mode_set :: (builder : *String_Builder, using mode : Graphics_Mode) {
 	b_mode_difference(builder, terminal_state.last_mode, mode);
 	terminal_state.last_mode = mode;
@@ -124,6 +118,15 @@ t_mode_set :: (mode : Graphics_Mode) -> string {
 	return builder_to_string(*builder, temp);
 }
 
+ks_mode_reset :: () {
+	ks_write("\e[0m");
+}
+t_mode_reset :: inline () -> string {
+	return "\e[0m";
+}
+b_mode_reset :: inline (builder : *String_Builder) {
+	append(*builder, "\e[0m");
+}
 
 b_putchar :: (builder : *String_Builder, c : Char) {
 	b_mode_set(builder, c.mode);

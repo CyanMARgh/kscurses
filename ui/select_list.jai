@@ -47,7 +47,6 @@ c_draw_select_list :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style
 			offset = cursor - zone.height + 1;
 		}
 	}
-	// TODO fix_cursor_and_offset()
 	fix_offset();
 
 	for y : 0..rows-1 {

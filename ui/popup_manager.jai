@@ -30,7 +30,6 @@ handle_key_popup_manager :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	}
 }
 
-//TODO  __broken_element : *UI_Element;
 c_draw_popup_manager :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	using ui_popup_manager := cast(*UI_Popup_Manager) ui_elem;
 	assert(layers_count > 0, "0 layers in popup manager");

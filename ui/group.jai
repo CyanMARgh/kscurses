@@ -1,8 +1,3 @@
-// TODO
-//			           zone_0        canvas_size
-// Scale_Mode :: #type(Ibox2, ivec2, ivec2) -> (Ibox2);
-//							  canvas_size_0     zone
-
 UI_Group :: struct {
 	#as using base_parent : UI_Parent = .{type = .GROUP};
 
