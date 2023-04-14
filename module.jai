@@ -31,11 +31,19 @@ KEEP_CLIPBOARD	:: true; // true now for debug purposes
 #load "ui/select_list.jai";
 #load "ui/parent.jai";
 #load "ui/scene_manager.jai";
+#load "ui/popup_manager.jai";
+
+#load "lambdas.jai";
+
+// TODO find all TODO's
 
 // TODO test 2 input windows
 // TODO maybe change logger in context
 // TODO make adding new ui types posible
-// TODO multiple scenes & subwindows/ui groups & popus support
+// TODO popus support
 // TODO add meaningfull assertion text
+// TODO add extra_handler :: (key : Key, *data)
+// TODO UI_Scene <- UI_Popup
+// TODO painter/handler vtables
 
 // TODO add windows(os) support xd

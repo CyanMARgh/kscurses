@@ -1,14 +1,18 @@
 UI_Button :: struct {
 	#as using base : UI_Elem = .{type = .BUTTON};
 	text := "";
-	on_click := (){};
+	on_click : struct {
+		proc := (data : *void){};
+		data : *void;
+	};
 }
+
 handle_key_button :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	using cast(*UI_Button) ui_elem;
 	assert(cursor_state == .ON);
 	assert(!links.inner);
 	if key == .ENTER {
-		on_click();
+		on_click.proc(on_click.data);
 		return true;
 	} else {
 		return handle_key_move(ui_elem, key);

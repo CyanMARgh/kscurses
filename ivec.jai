@@ -70,3 +70,6 @@ inside :: (inner : ivec2, outer : ivec2) -> bool {
 cut_border :: (box : Ibox2, gap : int) -> Ibox2 {
 	return .{width = xx(box.width - 2 * gap), height = xx(box.height - 2 * gap), left = xx(box.left + gap), top = xx(box.top + gap)};
 }
+centered_box :: (zone : Ibox2, box_size : ivec2) -> Ibox2, fit:bool {
+	return .{size = box_size, corner = zone.corner + ivec2.{(zone.width - box_size.x) / 2, (zone.height - box_size.y) / 2}}, inside(box_size, zone.size);
+}

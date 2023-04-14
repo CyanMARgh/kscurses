@@ -1,5 +1,3 @@
-// UI_Drawable :: struct
-
 UI_Elem :: struct {
 	type : enum u8 {
 		NONE :: 0;
@@ -8,25 +6,23 @@ UI_Elem :: struct {
 		GROUP :: 3;
 		SELECT_LIST :: 4;
 		SCENE_MANAGER :: 5;
+		POPUP_MANAGER :: 6;
+		LINE_INPUT :: 7;
 	} = .NONE;
 	MAX_TYPES :: 10;
 
-	// visual data, TODO
-	// =======
 	using visual_data : struct {
 		cursor_state : enum u8 { OUTSIDE :: 0; ON :: 1; IN :: 2; } = .OUTSIDE;
 		box_type : enum u8 { NONE :: 0; BORDER :: 1; NO_BORDER :: 2; } = .BORDER;		
 	}
 
-	links : struct {
+	using links : struct {
 		left, right, bottom, top, inner, outer : *UI_Elem;
 		parent : *UI_Parent;
 	}
 }
-c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
-	// tmp_copy := <<ui_elem; defer assert(<<ui_elem == tmp_copy);
-	// TODO add assertion
 
+c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	ok := box_type == .NONE || c_box(canvas, zone, ifx cursor_state == .ON then style.box.cursor else style.box.default, box_type == .BORDER);
 
 	if !ok return false;
@@ -44,6 +40,8 @@ c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI
 		return c_draw_select_list(canvas, ui_elem, content_zone, style);
 		case .SCENE_MANAGER;
 		return c_draw_scene_manager(canvas, ui_elem, content_zone, style);
+		case .POPUP_MANAGER;
+		return c_draw_popup_manager(canvas, ui_elem, content_zone, style);
 		case;
 		assert(false);
 	}
@@ -104,6 +102,8 @@ handle_key :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		handled = handle_key_select_list(ui_elem, key);
 		case .SCENE_MANAGER;
 		handled = handle_key_scene_manager(ui_elem, key);
+		case .POPUP_MANAGER;
+		handled = handle_key_popup_manager(ui_elem, key);
 		case;
 		assert(false);
 	}

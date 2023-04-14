@@ -16,7 +16,7 @@ UI_Group :: struct {
 set_sub_elements :: (group : *UI_Group, elements : ..UI_Group.Element) {
 	group.elements = elements;
 	for e : elements {
-		e.ptr.links.parent = group;
+		e.ptr.parent = group;
 	}
 }
 c_draw_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {

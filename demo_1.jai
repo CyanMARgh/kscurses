@@ -27,7 +27,7 @@ demo_1 :: () {
 	fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
 		_x, _y := coord.x * (video_size.x - 1) / zone.width, coord.y * (video_size.y - 1) / zone.height;
 		pixel := rgb_buffer[_y * video_size.x + _x];
-		return find_best_char(pixel, true/*coord.x * 2 < size.x*/);
+		return find_best_char(pixel, coord.x * 2 < zone.size.x);
 	}
 	update_frame();
 
@@ -81,7 +81,6 @@ demo_1 :: () {
 }
 
 #scope_file
-#import "stb_image_write";
 #import "pl_mpeg";
 #import "Thread";
 

@@ -4,7 +4,11 @@ UI_Master :: struct {
 	root : *UI_Elem;
 	should_exit := false;
 
-	before_draw := (){};
+	// before_draw := (){};
+	before_draw : struct {
+		proc := (data : *void){};
+		data : *void;
+	};
 }
 
 draw :: (using ui_master : *UI_Master) {
@@ -31,13 +35,13 @@ handle_key :: (using ui_master : *UI_Master, key : Key) {
 
 	if key == {
 		case .ESCAPE; should_exit = true;
-		case; ui_bell();
+		case; if key != .READ_ERROR ui_bell();
 	}
 }
 
 io_cycle :: (using ui_master : *UI_Master) {
 	while !should_exit {
-		before_draw();
+		before_draw.proc(before_draw.data);
 		draw(ui_master);
 		key := ks_getch(block = false);
 		handle_key(ui_master, key);
@@ -47,4 +51,9 @@ io_cycle :: (using ui_master : *UI_Master) {
 
 deinit :: (using ui_master : *UI_Master) {
 	deinit(*canvas);
+}
+
+set_scene :: (ui_master : *UI_Master, scene : UI_Scene) {
+	ui_master.root = scene.root;
+	set_active_recursive(scene.entry);
 }

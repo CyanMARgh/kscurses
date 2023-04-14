@@ -11,7 +11,7 @@ set_active_recursive :: (ui_elem : *UI_Elem) {
 
 	current := ui_elem;
 	while 1 {
-		parent := current.links.parent;
+		parent := current.parent;
 		if !parent break;
 		assert(!parent.active_element);
 		parent.active_element = current;
@@ -24,7 +24,7 @@ unset_active_recursive :: (ui_elem : *UI_Elem) {
 
 	current := ui_elem;
 	while 1 {
-		parent := current.links.parent;
+		parent := current.parent;
 		if !parent break;
 		assert(parent.active_element == current);
 		parent.active_element = null;
