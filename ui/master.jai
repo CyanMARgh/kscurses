@@ -4,7 +4,6 @@ UI_Master :: struct {
 	root : *UI_Elem;
 	should_exit := false;
 
-	// before_draw := (){};
 	before_draw : struct {
 		proc := (data : *void){};
 		data : *void;
@@ -38,7 +37,10 @@ handle_key :: (using ui_master : *UI_Master, key : Key) {
 	if handled return;
 
 	if key == {
-		case .ESCAPE; should_exit = true;
+		case .ESCAPE; {
+			should_exit = true;
+			unset_active_recursive(__last_set);
+		}
 		case; if key != .READ_ERROR ui_bell();
 	}
 }

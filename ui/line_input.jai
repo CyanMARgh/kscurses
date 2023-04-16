@@ -35,12 +35,7 @@ handle_key_line_input :: (ui_elem : *UI_Elem, key : Key) -> bool {
 			cursor_state = .IN;
 			return true;
 		}
-		if handle_inner(ui_line_input, key) {
-			cursor_state = .IN;
-			return true;
-		} else {
-			return false;
-		}
+		return false;
 	} else {
 		assert(false);
 	}

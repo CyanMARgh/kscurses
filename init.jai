@@ -8,15 +8,17 @@ terminal_state : struct {
 }
 
 ks_init :: () {
-	ks_write(tprint("%1%2%3%4", "\e[?25l", "\e7", "\e[?1047h", "\e[?30l"));
-	ks_write("\e[H");
-	// 1 - hide cursor
-	// 2 - save cursor
-	// 3 - switch to second screen
-	// 4 - hide scrollbar
+	ks_write("\e[?25l");	// hide cursor
+	ks_write("\e7");		// save cursor position
+	ks_write("\e[?1047h");	// switch screen
+	ks_write("\e[?30l");	// hide scrollbar
+
+	ks_write("\e[H"); 		// move to top left corner
+	ks_write("\e[0m");		// set default mode
+	ks_write("\e[2J"); 		// clear screen
+
 	set_raw_terminal_mode();
 
-	ks_clear_screen();
 	update_terminal_size();
 	enable_resize_handling();
 	// init_ui();
@@ -45,6 +47,11 @@ use_ks_curses :: () #expand {
 }
 
 #scope_file
+// IMPORTANT
+// I don't understand low-level programming, so this code is in the state of "thank god it works for me at least.".
+// If something breaks for you, then most likely because of this code.
+// If this happens, write to me, we will try to solve this problem together.
+
 TCSANOW 	:: 0;
 TCSADRAIN 	:: 1;
 TCSAFLUSH	:: 2;
@@ -63,64 +70,17 @@ My_Termios :: struct {
 	c_ispeed : u32;
 	c_ospeed : u32;
 }
-My_Kernel_Termios :: struct {
-	c_iflag : u32;
-	c_oflag : u32;
-	c_cflag : u32;
-	c_lflag : u32;
-	c_line : u8;
-	c_cc : [19]u8;
-}
-my_tcsetattr :: (fd : s32, optional_actions : s32, termios_p : *My_Termios) -> s32 {
-	k_termios : My_Kernel_Termios;
-	cmd : u64;
+libc :: #system_library "libc";
+tcsetattr :: (fd : s32, optional_actions : s32, termios_p : *My_Termios) -> s32 #foreign libc;
+tcgetattr :: (fd : s32, termios_p : *My_Termios) -> s32 #foreign libc;
+tcflush :: (fd : s32, queue_selector : s32) -> s32 #foreign libc;
+pthread_cond_wait :: (restrict_cond : *pthread_cond_t, restrict_mutex : *pthread_mutex_t) -> s32 #foreign libc;
 
-	if optional_actions == {
-		case TCSANOW;
-		cmd = TCSETS;
-		case TCSADRAIN;
-		cmd = TCSETSW;
-		case TCSAFLUSH;
-		cmd = TCSETSF;
-		case;
-		exit(-1);
-	}
-
-	k_termios.c_iflag = (termios_p.c_iflag) & 0x7FFFFFFF;
-	k_termios.c_oflag = termios_p.c_oflag;
-	k_termios.c_cflag = termios_p.c_cflag;
-	k_termios.c_lflag = termios_p.c_lflag;
-	// k_termios.c_line = termios_p->c_line;	????
-	// k_termios.c_ispeed = termios_p->c_ispeed;
-	// k_termios.c_ospeed = termios_p->c_ospeed;
-
-	memcpy(*(k_termios.c_cc[0]), *(termios_p.c_cc[0]), 19);
-    return ioctl(fd, cmd, *k_termios);
-}
-my_tcgetattr :: (fd : s32, termios_p : *My_Termios) -> s32 {
-	k_termios : My_Kernel_Termios;
-	retval : s32;
-	retval = ioctl(fd, TCGETS, *k_termios);
-
-	termios_p.c_iflag = k_termios.c_iflag;
-	termios_p.c_oflag = k_termios.c_oflag;
-	termios_p.c_cflag = k_termios.c_cflag;
-	termios_p.c_lflag = k_termios.c_lflag;
-	// termios_p->c_line = k_termios.c_line;
-	// termios_p->c_ispeed = k_termios.c_ispeed;
-	// termios_p->c_ospeed = k_termios.c_ospeed;
-	_POSIX_VDISABLE :: 0;
-
-	memcpy(*(termios_p.c_cc[0]), *(k_termios.c_cc[0]), 19);
-
-	memset((cast(*u8)*(termios_p.c_cc[0])) + 19, _POSIX_VDISABLE, (32 - 19));
-	return retval;
-}
-
-term : My_Termios;
+__term : My_Termios;
+// __fcntl_flags_old : s32;
 set_raw_terminal_mode :: () {
-	my_tcgetattr(STDIN_FILENO, *term);
-	term_new := term;
+	tcgetattr(STDIN_FILENO, *__term);
+	term_new := __term;
 
 	term_new.c_iflag &= 0xFFFFFA14;// ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
 	term_new.c_oflag &= 0xFFFFFFFE;//~OPOST;
@@ -128,8 +88,17 @@ set_raw_terminal_mode :: () {
 	term_new.c_cflag &= 0xFFFFFECF;//~(CSIZE | PARENB);
 	term_new.c_cflag |= 0x00000030;
 
-	my_tcsetattr(STDIN_FILENO, 0, *term_new);
+	tcsetattr(STDIN_FILENO, 0, *term_new);
+
+	// __fcntl_flags_old = fcntl(STDIN_FILENO, F_GETFL, 0);
+	// fcntl(STDIN_FILENO, F_SETFL, __fcntl_flags_old | O_NONBLOCK); // make input non-blocking
+
+	TCIFLUSH :: 0;
+	tcflush(STDIN_FILENO, TCIFLUSH);
 }
 restore_terminal_mode :: () {
-	my_tcsetattr(STDIN_FILENO, 0, *term);	
+	// fcntl(STDIN_FILENO, F_SETFL, __fcntl_flags_old); // make input blocking
+	// tcsetattr(STDIN_FILENO, 0, *__term);	//enable echo & buffered input
+
+	tcsetattr(STDIN_FILENO, 0, *__term);	
 }

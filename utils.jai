@@ -1,9 +1,9 @@
-array_slice :: (array : []$T, left : int, right : int) -> []T {
-	assert(left <= right && left >= 0 && right <= array.count);
-	result : []T;
-	result.data, result.count = array.data + left, right - left;
-	return result;
-}
+// array_slice :: (array : []$T, left : int, right : int) -> []T {
+// 	assert(left <= right && left >= 0 && right <= array.count);
+// 	result : []T;
+// 	result.data, result.count = array.data + left, right - left;
+// 	return result;
+// }
 
 length_code :: inline (c : u64) -> u8 {
 	for 0..7 {

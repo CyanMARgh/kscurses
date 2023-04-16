@@ -125,7 +125,7 @@ t_mode_reset :: inline () -> string {
 	return "\e[0m";
 }
 b_mode_reset :: inline (builder : *String_Builder) {
-	append(*builder, "\e[0m");
+	append(builder, "\e[0m");
 }
 
 b_putchar :: (builder : *String_Builder, c : Char) {

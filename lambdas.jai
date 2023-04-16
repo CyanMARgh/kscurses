@@ -4,17 +4,14 @@ decl_lambda :: ($code_src : Code) -> Code #expand {
 
 	pair_names, pair_srcs := get_lambda_pairs(proc_node, data_node, names, names_field, node_header, node_block);
 
-	node_decl := Code_Declaration.{
-		kind = .DECLARATION,
-		expression = pair_srcs
-	};
-	node_cdecl := Code_Compound_Declaration.{
+	return compiler_get_code(*Code_Compound_Declaration.{
 		kind = .COMPOUND_DECLARATION,
 		comma_separated_assignment = xx pair_names,
-		declaration_properties = *node_decl
-	};
-
-	return compiler_get_code(*node_cdecl);
+		declaration_properties = *Code_Declaration.{
+			kind = .DECLARATION,
+			expression = pair_srcs
+		}
+	});
 }
 assign_lambda :: ($code_src : Code, parent_scope := #caller_code) #expand {
 	#insert,scope(parent_scope) #run _assign_lambda(code_src);	
@@ -55,6 +52,7 @@ _struct_lambda :: ($code_src : Code) -> Code {
 	};
 	return compiler_get_code(*node_assign);
 }
+//TODO add support for non-"proc/data" names
 split_src :: (gen_pair : bool, node_src : *Code_Node) -> proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block #expand {
 	offset := ifx gen_pair then 1 else 2;
 
@@ -82,27 +80,24 @@ split_src :: (gen_pair : bool, node_src : *Code_Node) -> proc_node:*Code_Node, d
 
 	proc_node, data_node : *Code_Node;
 	if gen_pair {
-		node_0 := Code_Ident.{
-			kind = .IDENT,
-			name = "proc"
-		};
-		node_1 := Code_Ident.{
-			kind = .IDENT,
-			name = "data"
-		};
-		node_2 := Code_Binary_Operator.{
+		proc_node = *Code_Binary_Operator.{
 			kind = .BINARY_OPERATOR,
 			operator_type = #char".",
 			left = node_src_statements[0],
-			right = *node_0
+			right = *Code_Ident.{
+				kind = .IDENT,
+				name = "proc"
+			}
 		};
-		node_3 := Code_Binary_Operator.{
+		data_node = *Code_Binary_Operator.{
 			kind = .BINARY_OPERATOR,
 			operator_type = #char".",
 			left = node_src_statements[0],
-			right = *node_1
+			right = *Code_Ident.{
+				kind = .IDENT,
+				name = "data"
+			}
 		};
-		proc_node, data_node = *node_2, *node_3;
 	} else {
 		proc_node, data_node = node_src_statements[0], node_src_statements[1];
 	}
@@ -145,70 +140,42 @@ gen_struct_type_node :: (names : []string, names_field : []string) -> *Code_Node
 		};
 		nodes_declaration_ptr[i] = *(nodes_declaration[i]);
 	}
-	node_struct_block := Code_Block.{
-		kind = .BLOCK,
-		block_type = .DATA_DECLARATIONS,
-		statements = nodes_declaration_ptr
-	};
 	node_struct := Code_Struct.{
 		kind = .STRUCT,
-		block = *node_struct_block
+		block = *Code_Block.{
+			kind = .BLOCK,
+			block_type = .DATA_DECLARATIONS,
+			statements = nodes_declaration_ptr
+		}
 	};
 	return *node_struct;
 }
+//TODO better assertions
 get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block) -> pair_names:*Code_Node, pair_srcs:*Code_Node #expand {
 	node_0 := gen_struct_type_node(names, names_field);
-	node_1 := Code_Unary_Operator.{
-		kind = .UNARY_OPERATOR,
-		subexpression = node_0,
-		operator_type = #char"*"
-	};
-	node_2 := Code_Type_Instantiation.{
-		kind = .TYPE_INSTANTIATION,
-		type_valued_expression = *node_1
-	};
-	node_3 := Code_Ident.{
-		kind = .IDENT,
-		name = "__data"
-	};
-	node_4 := Code_Cast.{
-		kind = .CAST,
-		target_type = *node_2,
-		expression = *node_3
-	};
-	node_5 := Code_Using.{
-		kind = .USING,
-		expression = *node_4
-	};
 
 	stat_count := node_block.statements.count;
 	nodes_new_statements := NewArray(stat_count + 1, *Code_Node);
 	for i : 0..stat_count-1 {
 		nodes_new_statements[i + 1] = node_block.statements[i];
 	}
-	nodes_new_statements[0] = *node_5;
-
-	node_6 := Code_Block.{
-		kind = .BLOCK,
-		statements = nodes_new_statements
-	};
-	node_7 := Code_Ident.{
-		kind = .IDENT,
-		name = "void"
-	};
-	node_8 := Code_Unary_Operator.{
-		kind = .UNARY_OPERATOR,
-		operator_type = #char"*",
-		subexpression = *node_7
-	};
-	node_9 := Code_Type_Instantiation.{
-		kind = .TYPE_INSTANTIATION,
-		type_valued_expression = *node_8
-	};
-	node_10 := Code_Declaration.{
-		kind = .DECLARATION,
-		name = "__data",
-		type_inst = *node_9
+	nodes_new_statements[0] = *Code_Using.{
+		kind = .USING,
+		expression = *Code_Cast.{
+			kind = .CAST,
+			target_type = *Code_Type_Instantiation.{
+				kind = .TYPE_INSTANTIATION,
+				type_valued_expression = *Code_Unary_Operator.{
+					kind = .UNARY_OPERATOR,
+					subexpression = node_0,
+					operator_type = #char"*"
+				}
+			},
+			expression = *Code_Ident.{
+				kind = .IDENT,
+				name = "__data"
+			}
+		}
 	};
 
 	arg_count := node_header.arguments.count;
@@ -216,17 +183,20 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 	for i : 0..arg_count-1 {
 		node_new_args[i] = node_header.arguments[i];
 	}
-	node_new_args[arg_count] = *node_10;
-
-	node_11 := Code_Procedure_Body.{
-		kind = .PROCEDURE_BODY,
-		block = *node_6
-	};
-	node_12 := Code_Procedure_Header.{
-		kind = .PROCEDURE_HEADER,
-		arguments = node_new_args,
-		returns = node_header.returns,
-		body_or_null = *node_11
+	node_new_args[arg_count] = *Code_Declaration.{
+		kind = .DECLARATION,
+		name = "__data",
+		type_inst = *Code_Type_Instantiation.{
+			kind = .TYPE_INSTANTIATION,
+			type_valued_expression = *Code_Unary_Operator.{
+				kind = .UNARY_OPERATOR,
+				operator_type = #char"*",
+				subexpression = *Code_Ident.{
+					kind = .IDENT,
+					name = "void"
+				}
+			}
+		}
 	};
 
 	nodes_13 := NewArray(names.count, Code_Ident);
@@ -245,28 +215,35 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 		};
 		nodes_14_ptr[i] = *(nodes_14[i]);
 	}
-	node_15 := Code_Type_Instantiation.{
-		kind = .TYPE_INSTANTIATION,
-		type_valued_expression = node_0
-	};
-	node_16 := Code_Struct_Literal_Info.{
-		type_expression = *node_15,
-		arguments = nodes_14_ptr
-	};
-	node_17 := Code_Literal.{
-		kind = .LITERAL,
-		value_type = .STRUCT,
-		struct_literal_info = *node_16
-	};
-	node_18 := Code_Unary_Operator.{
-		kind = .UNARY_OPERATOR,
-		operator_type = #char"*",
-		subexpression = *node_17
-	};
 
 	exprs : [2]*Code_Node;
-	exprs[0] = *node_12;
-	exprs[1] = *node_18;
+	exprs[0] = *Code_Procedure_Header.{
+		kind = .PROCEDURE_HEADER,
+		arguments = node_new_args,
+		returns = node_header.returns,
+		body_or_null = *Code_Procedure_Body.{
+			kind = .PROCEDURE_BODY,
+			block = *Code_Block.{
+				kind = .BLOCK,
+				statements = nodes_new_statements
+			}
+		}
+	};
+	exprs[1] = *Code_Unary_Operator.{
+		kind = .UNARY_OPERATOR,
+		operator_type = #char"*",
+		subexpression = *Code_Literal.{
+			kind = .LITERAL,
+			value_type = .STRUCT,
+			struct_literal_info = *Code_Struct_Literal_Info.{
+				type_expression = *Code_Type_Instantiation.{
+					kind = .TYPE_INSTANTIATION,
+					type_valued_expression = node_0
+				},
+				arguments = nodes_14_ptr
+			}
+		}
+	};
 	node_19 := Code_Comma_Separated_Arguments.{
 		kind = .COMMA_SEPARATED_ARGUMENTS,
 		expressions = exprs
@@ -281,4 +258,3 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 
 	return *node_22, *node_19;
 }
-
