@@ -13,9 +13,3 @@ Currently available support :
 - ui elements (empty, button, text block, selection list)
 
 Currently works only on linux (tested on gnome terminal).
-
-demos list :
-- menu example (without ui.jai)
-- video in console
-- color256 test
-- ui example

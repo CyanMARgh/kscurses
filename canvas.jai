@@ -41,6 +41,34 @@ resize_clear :: (using canvas : *Canvas, new_zone : Ibox2, filler := Char.{}) {
 	}
 	refresh_all = true;
 }
+resize_fill :: (using canvas : *Canvas, new_zone : Ibox2, fill_function : (coord : ivec2, zone : Ibox2) -> Char) {
+	array_free(pixels_last_draw);
+	array_free(pixels_buf);
+	array_free(links);
+
+	zone = new_zone;
+	count = zone.width * zone.height;
+
+	pixels_last_draw = NewArray(count, Char);
+	pixels_buf = NewArray(count, Char);
+	links = NewArray(count + 1, Link);
+
+	links[count] = .{xx count, xx count};
+
+	i := 0;
+	for y : 0..zone.height-1 {
+		for x : 0..zone.width-1 {
+			pixels_buf[i] = fill_function(.{x, y}, zone);
+			i += 1;
+			diff_count += 1;
+		}
+	}
+
+	for * links {
+		<<it = .{-1, -1};
+	}
+	refresh_all = true;
+}
 b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 	if refresh_all {
 		i := 0;

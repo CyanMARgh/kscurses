@@ -64,6 +64,8 @@ ks_esc_m :: inline ($$code : int) {
 b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using current : Graphics_Mode) {
 	printed_first := false;
 	add_code :: (code : u8) #expand {
+		// assert(code != xx Attr.BOLD);
+		// assert(code != xx Attr.DIM);
 		if printed_first {
 			print_to_builder(builder, ";%", code);
 		} else {
@@ -88,16 +90,17 @@ b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using cur
 			add_code(48); add_code(5); add_code(xx bcol256);
 		}
 	}
-	if prev.attr_flags & 1 != attr_flags & 1 || prev.attr_flags & 2 != attr_flags & 2 {
-		off0 := (prev.attr_flags & 1) && (attr_flags & 1);
-		off1 := (prev.attr_flags & 2) && (attr_flags & 2);
-		reset := off0 || off1;
-		on0 := (reset || (prev.attr_flags & 1)) && (attr_flags & 1);
-		on1 := (reset || (prev.attr_flags & 2)) && (attr_flags & 2);
-
-		if reset add_code(xx Attr.BOLD_AND_DIM_OFF);		
-		if on0 add_code(xx Attr.BOLD);
-		if on1 add_code(xx Attr.DIM);
+	if (prev.attr_flags & 1) != (attr_flags & 1) || (prev.attr_flags & 2) != (attr_flags & 2) {
+		off0 := (prev.attr_flags & 1) && !(attr_flags & 1);
+		off1 := (prev.attr_flags & 2) && !(attr_flags & 2);
+		if off0 || off1 {
+			add_code(xx Attr.BOLD_AND_DIM_OFF);		
+			if (attr_flags & 1) add_code(xx Attr.BOLD);
+			if (attr_flags & 2) add_code(xx Attr.DIM);
+		} else {
+			if (attr_flags & 1) && !(prev.attr_flags & 1) add_code(xx Attr.BOLD);
+			if (attr_flags & 2) && !(prev.attr_flags & 2) add_code(xx Attr.DIM);
+		}
 	}
 	add_code_on_off(xx prev.attr_flags &  4, xx attr_flags &  4, .ITALIC, .ITALIC_OFF);
 	add_code_on_off(xx prev.attr_flags &  8, xx attr_flags &  8, .UNDERLINE, .UNDERLINE_OFF);
@@ -108,23 +111,27 @@ b_mode_difference :: (builder : *String_Builder, prev : Graphics_Mode, using cur
 }
 #scope_export
 
-b_mode_set :: (builder : *String_Builder, using mode : Graphics_Mode) {
+//TODO update_state := true
+b_mode_set :: (builder : *String_Builder, using mode : Graphics_Mode, update_state := true) {
 	b_mode_difference(builder, terminal_state.last_mode, mode);
-	terminal_state.last_mode = mode;
+	if update_state terminal_state.last_mode = mode;
 }
-t_mode_set :: (mode : Graphics_Mode) -> string {
+t_mode_set :: (mode : Graphics_Mode, update_state := true) -> string {
 	builder := String_Builder.{allocator = temp};
-	b_mode_set(*builder, mode);
+	b_mode_set(*builder, mode, update_state);
 	return builder_to_string(*builder, temp);
 }
 
-ks_mode_reset :: () {
+ks_mode_reset :: (update_state := true) {
 	ks_write("\e[0m");
+	if update_state terminal_state.last_mode = .{};
 }
-t_mode_reset :: inline () -> string {
+t_mode_reset :: inline (update_state := true) -> string {
+	if update_state terminal_state.last_mode = .{};
 	return "\e[0m";
 }
-b_mode_reset :: inline (builder : *String_Builder) {
+b_mode_reset :: inline (builder : *String_Builder, update_state := true) {
+	if update_state terminal_state.last_mode = .{};
 	append(builder, "\e[0m");
 }
 

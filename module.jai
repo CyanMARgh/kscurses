@@ -1,8 +1,10 @@
 ENABLE_SIGINT	:: true;
 ENABLE_SIGTERM	:: true;
 ENABLE_SIGKILL	:: true;
-ENABLE_UI_BELL	:: true;
 KEEP_CLIPBOARD	:: true; // true now for debug purposes
+
+#module_parameters(TICK_DURATION_MS := 1000, ENABLE_UI_BELL	:= true);
+
 
 #import "Basic"();
 #import "POSIX";
@@ -11,14 +13,16 @@ KEEP_CLIPBOARD	:: true; // true now for debug purposes
 
 #assert OS == .LINUX;
 
+#load "queue.jai";
 #load "io.jai";
-#load "resize.jai";
+// #load "resize.jai";
 #load "init.jai";
 #load "ivec.jai";
 #load "modes.jai";
 #load "print.jai";
 #load "utils.jai";
 #load "canvas.jai";
+#load "events.jai";
 
 #load "ui/style.jai";
 #load "ui/element.jai";
@@ -38,7 +42,12 @@ KEEP_CLIPBOARD	:: true; // true now for debug purposes
 
 // TODO:
 
-// restore old demos
+// EDIT README 
+//	- features
+//  - demos description
+// make better how_to
+
+// tick_duration_ms:int, enable_clock:bool and initial_event:bool in use_events()
 
 // (maybe) change logger in context
 // add meaningfull assertion text
@@ -59,4 +68,3 @@ KEEP_CLIPBOARD	:: true; // true now for debug purposes
 // (maybe) unset_active_recursive without arguments
 
 // add module parameters 
-// make better how_to

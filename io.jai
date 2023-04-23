@@ -44,41 +44,44 @@ Key :: enum u64 {
 }
 ks_getch :: (block := true) -> Key {
 	buf : u64 = 0;
-	// still not sure is it proper way to read key-by-key
-	// but not noticed any bugs now 
-	while 1 {
-		l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
-		if l > 0 {
-			break;
-		} else if !block {
-			buf = xx Key.READ_ERROR;
-			break;
-		}
-	}
-	get_exit_code :: inline (code : u64) -> s32 {
-		#if ENABLE_SIGINT if code == 3 return 130;
-		#if ENABLE_SIGTERM if code == 28 return 143;
-		#if ENABLE_SIGKILL if code == 28 return 137;
-		return 0;
-	}
+	l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
 	exit_code := get_exit_code(buf);
 	if exit_code {
 		ks_terminate();
 		exit(exit_code);
 	}	
+	return ifx l <= 0 then Key.READ_ERROR else xx buf;
 
-	return xx buf;
+	// buf : u64 = 0;
+	// // still not sure is it proper way to read key-by-key
+	// // but not noticed any bugs now 
+	// while 1 {
+	// 	l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
+	// 	if l > 0 {
+	// 		break;
+	// 	} else if !block {
+	// 		buf = xx Key.READ_ERROR;
+	// 		break;
+	// 	}
+	// }
+	get_exit_code :: inline (code : u64) -> s32 {
+		#if ENABLE_SIGINT if code == 3 return 130;
+		#if ENABLE_SIGTERM if code == 28 return 143;
+		return 0;
+	}
+
+	// return xx buf;
 }
 ks_write :: (str : string) {
 	printed := 0;
-	while 1 {
+	// while 1 {
 		r := write(STDIN_FILENO, str.data + printed, xx (str.count - printed));
-		if printed + r == str.count {
-			break;
-		} else if r >= 0 {
-			printed += r;
-		}
-	}
+		// if printed + r == str.count {
+		// 	break;
+		// } else if r >= 0 {
+		// 	printed += r;
+		// }
+	// }
 	__write_counter += str.count;
 }
 __write_counter := 0;

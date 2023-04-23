@@ -1,5 +1,4 @@
 demo_5 :: () {
-	master : UI_Master;
 	popup_manager : UI_Popup_Manager;
 		background : UI_Group = .{box_type = .NO_BORDER};
 			lines : [..]string;
@@ -42,24 +41,9 @@ demo_5 :: () {
 	}});
 
 	set_background(*popup_manager, .{*background, *btn_add});
-	set_scene(*master, .{*popup_manager, *btn_add});
+	set_main_scene(.{*popup_manager, *btn_add});
 
 	use_ks_curses();
-	// x := ks_getch();
-	io_cycle(*master);
+	run_singlethread_ui();
+	// run_multithread_ui();
 }
-// #scope_file
-// Scene_Fruit_List :: struct {
-// 	base : UI_Scene;
-
-// 	background : UI_Group = .{box_type = .NO_BORDER};
-// 	lines : [..]string;
-// 	text_buf : UI_Text_Buf;
-// 	btn_add : UI_Button = .{text = "add fruit"};
-// }
-// make_scene_main :: () -> Scene_Main, UI_Scene #expand {
-
-// }
-// clear_scene_main :: (using scene_main : *Scene_Main) {
-
-// }

@@ -1,5 +1,4 @@
 demo_6 :: () {
-	master : UI_Master;
 	group : UI_Group;
 		text_buf : UI_Text_Buf;
 		line_input : UI_Line_Input;
@@ -16,7 +15,7 @@ demo_6 :: () {
 		.{*text_buf, .{20, 20, 0, 3}}
 	);
 	link_tb(*line_input, *text_buf);
-	set_scene(*master, .{*group, *line_input});
+	set_main_scene(.{*group, *line_input});
 
 	struct_lambda(#code {line_input.extra_handler; line_input; lines; text_buf; (key : Key)->(bool); {
 		if key == .ENTER {
@@ -40,5 +39,6 @@ demo_6 :: () {
 
 
 	use_ks_curses();
-	io_cycle(*master);
+	run_singlethread_ui();
+	// run_multithread_ui();
 }

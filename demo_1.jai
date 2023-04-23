@@ -1,89 +1,81 @@
 demo_1 :: () {
-	init(*win_mtx);
-	init(*buf_mtx);
-	
+	video_runs := true;
+	stop_main := false;
+	ticks := 0;
+
+	struct_lambda(#code { __event_handler; stop_main; ticks; video_runs; (e : Event)->(); {
+		if e.type == {
+			case .KEY;
+			if e.key == .ESCAPE then <<_stop_main = true;
+			case .TICK;
+			<<_ticks += 1;
+			// ks_write(tprint("tick = %\n\r", <<_ticks));
+			<<_video_runs = update_main_frame();
+		}
+	}});
+
+	prepare(); defer finalize();
+
+	use_ks_curses();
+	use_events();
+
+	while !stop_main {
+		if wait_and_process_events() {
+			draw(video_runs);
+			reset_temporary_storage();
+		}
+	}
+}
+#scope_file
+#import "pl_mpeg";
+#import "POSIX";
+
+plm : *Plm;
+video_size : ivec2;
+main_frame : []u8vec3;
+main_canvas : Canvas;
+
+prepare :: () {
 	plm = create_with_filename("clip.mpg");
 	if !plm {
 		print("Couldn't open video\n");
-		return;
+		exit(1);
 	}
-	set_audio_enabled(plm, false);
 	w, h := get_size(plm); video_size = .{w, h};
-	rgb_buffer = NewArray(w * h, u8vec3); defer array_free(rgb_buffer);		
-	defer plm_destroy(plm);
-
-	update_frame :: () {
-		if !video_runs return;
-		defer frame_id += 1;
-		frame := decode_video(plm);
-		if !frame {
-			video_runs = false;
-			return;
-		}
-		frame_to_rgb(frame, xx rgb_buffer.data, video_size.x * 3);
+	set_audio_enabled(plm, false);
+	main_frame = NewArray(w * h, u8vec3);
+}
+finalize :: () {
+	plm_destroy(plm);
+	array_free(main_frame);
+	deinit(*main_canvas);
+}
+update_main_frame :: () -> ok:bool {
+	frame_plm := decode_video(plm);
+	if !frame_plm {
+		array_free(main_frame);
+		main_frame = .[];
+		return false;
 	}
-	fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
-		_x, _y := coord.x * (video_size.x - 1) / zone.width, coord.y * (video_size.y - 1) / zone.height;
-		pixel := rgb_buffer[_y * video_size.x + _x];
-		return find_best_char(pixel, coord.x * 2 < zone.size.x);
-	}
-	update_frame();
-
-	refresh_all :: () {
-		using terminal_state;
-		resize_clear(*main_canvas, .{size = size});
-		// resize_no_fill(*main_window, .{size=size});
-		c_fill(*main_canvas, fill_function);
-		ks_draw_canvas(*main_canvas);
-		if !video_runs ks_print(.{2, 2}, make_graphics_mode(foreground = .BLACK, background = .GREEN), "press any key to exit.");
-	}
-	
-	{
-		use_ks_curses();
-			
-		defer {
-			lock(*buf_mtx); defer unlock(*buf_mtx);
-			deinit(*main_canvas);
-		}
-
-		render_cycle :: (thread : *Thread) -> s64 {
-			using terminal_state;
-			t0 := to_milliseconds(current_time_monotonic());
-			while video_runs && !forced_exit {
-				ti := to_milliseconds(current_time_monotonic());
-				{
-					lock(*buf_mtx); defer unlock(*buf_mtx);
-					update_frame();
-					refresh_all();
-				}
-				delta := (frame_id * 1000 / FPS) - (ti - t0);
-				if delta > 0 sleep_milliseconds(xx delta);
-			}
-			return 0;
-		}
-		render_thread : Thread;
-		thread_init(*render_thread, render_cycle);
-		defer thread_deinit(*render_thread);
-		thread_start(*render_thread);
-
-		while 1 {
-			c := ks_getch(block = false);
-			if c != .READ_ERROR break;	
-			lock(*buf_mtx); defer unlock(*buf_mtx);
-			refresh_all();
-		}
-
-		forced_exit = true;
-		while !thread_is_done(*render_thread) { }
-	}
+	frame_to_rgb(frame_plm, xx main_frame.data, video_size.x * 3);
+	return true;
 }
 
-#scope_file
-#import "pl_mpeg";
-#import "Thread";
-
-plm : *Plm;
-
+fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
+	_x, _y := coord.x * (video_size.x - 1) / zone.width, coord.y * (video_size.y - 1) / zone.height;
+	pixel := ifx main_frame then main_frame[_y * video_size.x + _x] else u8vec3.{0, 0, 0};
+	return find_best_char(pixel, coord.x * 2 < zone.size.x);
+}
+draw :: (video_runs : bool) {
+	if video_runs {
+		resize_fill(*main_canvas, .{size = terminal_state.size}, fill_function);
+		ks_draw_canvas(*main_canvas);		
+	} else {
+		ks_mode_reset();
+		ks_clear_screen();
+		ks_print(.{2, 2}, make_graphics_mode(foreground = .BLACK, background = .GREEN), "press escape key to exit.");
+	}
+}
 find_best_char :: (_p : u8vec3, use_mix : bool) -> Char {
 	p := cast_vec(s32, _p);
 	to_6level :: (x : s32) -> u8, s32 {
@@ -129,15 +121,3 @@ find_best_char :: (_p : u8vec3, use_mix : bool) -> Char {
 		);
 	}
 }
-rgb_buffer : []u8vec3;
-buf_mtx : Mutex;
-
-video_size : ivec2;
-frame_id := 0;
-video_runs := true;
-forced_exit := false;
-
-FPS :: 25;
-
-main_canvas : Canvas;
-win_mtx : Mutex;

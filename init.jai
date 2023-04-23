@@ -1,12 +1,18 @@
 terminal_state : struct {
 	size : ivec2;
-	on_resize : () = null;
-
-	// clipboard : []Char_Type;
-	cursor := ivec2.{-1, -1};
+	cursor := ivec2.{-1, -1}; // {-1, -1} if cursor hidden
 	last_mode : Graphics_Mode;
 }
+update_terminal_size :: () {
+	TIOCGWINSZ :: 0x5413;
+	winsize : struct {
+		ws_row, ws_col, ws_xpixel, ws_ypixel : u16;
+	}
+	ioctl(0, TIOCGWINSZ, *winsize);
+	terminal_state.size = .{xx winsize.ws_col, xx winsize.ws_row};
+}
 
+__term : My_Termios;
 ks_init :: () {
 	ks_write("\e[?25l");	// hide cursor
 	ks_write("\e7");		// save cursor position
@@ -16,49 +22,56 @@ ks_init :: () {
 	ks_write("\e[H"); 		// move to top left corner
 	ks_write("\e[0m");		// set default mode
 	ks_write("\e[2J"); 		// clear screen
+	{
+		tcgetattr(STDIN_FILENO, *__term);
+		term_new := __term;
 
-	set_raw_terminal_mode();
+		term_new.c_iflag &= 0xFFFFFA14;// ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+		term_new.c_oflag &= 0xFFFFFFFE;// ~OPOST;
+		term_new.c_lflag &= 0xFFFF7FB4;// ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+		term_new.c_cflag &= 0xFFFFFECF;// ~(CSIZE | PARENB);
+		term_new.c_cflag |= 0x00000030;
 
+		tcsetattr(STDIN_FILENO, 0, *term_new);	
+	}
 	update_terminal_size();
-	enable_resize_handling();
-	// init_ui();
-	reset_temporary_storage();
 }
 ks_terminate :: () {
-	using terminal_state;
-	ks_write("\e[0m");
-	ks_clear_screen();
-	ks_write(tprint("%1%2%3%4", "\e[?47l", "\e8", "\e[?25h", "\e[?30h"));
-	// 1 - restore first screen
-	// 2 - restore cursor position
-	// 3 - show cursor
-	// 4 - show scrolbar
-	restore_terminal_mode();
-	#if !KEEP_CLIPBOARD {
-		array_free(clipboard); clipboard = .[];
-		clear(*clipboard_multiline);
-	}
-	last_mode = .{};
-	reset_temporary_storage();
+	tcsetattr(STDIN_FILENO, 0, *__term); // return echo
+
+	ks_write("\e[?47l");	// restore screen
+	ks_write("\e8");		// restore cursor
+	ks_write("\e[?25h");	// show cursor
+	ks_write("\e[?30h");	// show scrollbar
+	terminal_state = .{};
 }
 use_ks_curses :: () #expand {
 	ks_init();
-	`defer ks_terminate();
+	`defer {
+		ks_terminate();
+	}
 }
-
-#scope_file
-// IMPORTANT
-// I don't understand low-level programming, so this code is in the state of "thank god it works for me at least.".
-// If something breaks for you, then most likely because of this code.
-// If this happens, write to me, we will try to solve this problem together.
-
-TCSANOW 	:: 0;
-TCSADRAIN 	:: 1;
-TCSAFLUSH	:: 2;
-TCGETS 		:: 0x5401;
-TCSETS 		:: 0x5402;
-TCSETSW 	:: 0x5403;
-TCSETSF		:: 0x5404;
+use_default_winch_handler :: () #expand {
+	init_default_winch_handler();
+	`defer deinit_default_winch_handler();
+}
+init_default_winch_handler :: () {
+	act := sigaction_t.{
+		sa_handler = (sig : s32) #c_call {
+			new_context: Context;
+			push_context new_context {
+				update_terminal_size();
+			}
+		},
+		sa_mask = sigset_t.{__val[0] = SIGWINCH}
+	};
+	sigaction(SIGWINCH, *act, null);
+}
+deinit_default_winch_handler :: () {
+	sa : sigaction_t;
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGWINCH, null, *sa);
+}
 
 My_Termios :: struct {
 	c_iflag : u32;
@@ -70,35 +83,8 @@ My_Termios :: struct {
 	c_ispeed : u32;
 	c_ospeed : u32;
 }
+
+#scope_file
 libc :: #system_library "libc";
 tcsetattr :: (fd : s32, optional_actions : s32, termios_p : *My_Termios) -> s32 #foreign libc;
 tcgetattr :: (fd : s32, termios_p : *My_Termios) -> s32 #foreign libc;
-tcflush :: (fd : s32, queue_selector : s32) -> s32 #foreign libc;
-pthread_cond_wait :: (restrict_cond : *pthread_cond_t, restrict_mutex : *pthread_mutex_t) -> s32 #foreign libc;
-
-__term : My_Termios;
-// __fcntl_flags_old : s32;
-set_raw_terminal_mode :: () {
-	tcgetattr(STDIN_FILENO, *__term);
-	term_new := __term;
-
-	term_new.c_iflag &= 0xFFFFFA14;// ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-	term_new.c_oflag &= 0xFFFFFFFE;//~OPOST;
-	term_new.c_lflag &= 0xFFFF7FB4;//~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-	term_new.c_cflag &= 0xFFFFFECF;//~(CSIZE | PARENB);
-	term_new.c_cflag |= 0x00000030;
-
-	tcsetattr(STDIN_FILENO, 0, *term_new);
-
-	// __fcntl_flags_old = fcntl(STDIN_FILENO, F_GETFL, 0);
-	// fcntl(STDIN_FILENO, F_SETFL, __fcntl_flags_old | O_NONBLOCK); // make input non-blocking
-
-	TCIFLUSH :: 0;
-	tcflush(STDIN_FILENO, TCIFLUSH);
-}
-restore_terminal_mode :: () {
-	// fcntl(STDIN_FILENO, F_SETFL, __fcntl_flags_old); // make input blocking
-	// tcsetattr(STDIN_FILENO, 0, *__term);	//enable echo & buffered input
-
-	tcsetattr(STDIN_FILENO, 0, *__term);	
-}

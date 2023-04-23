@@ -1,5 +1,4 @@
 demo_4 :: () {
-	master : UI_Master;
 	scene_manager : UI_Scene_Manager;
 		S0 : UI_Group;
 			btn_to_s1 : UI_Button = .{text = "swtch scene!"};
@@ -25,7 +24,7 @@ demo_4 :: () {
 	struct_lambda(#code {e20.on_click; text_buf; ()->(); {
 		_text_buf.lines[2] = "click!";
 	}}); 
-	struct_lambda(#code {master.before_draw; draw_counter; ()->(); {
+	struct_lambda(#code {__ui_master.before_draw; draw_counter; ()->(); {
 		_draw_counter.lines[0] = tprint("% chars", __write_counter);
 	}}); 
 	struct_lambda(#code {btn_to_s1.on_click; scene_manager; ()->(); {
@@ -81,8 +80,9 @@ demo_4 :: () {
 
 	link_tb(*text_buf, *select_list);
 
-	set_scene(*master, .{*scene_manager, *e00});
+	set_main_scene(.{*scene_manager, *e00});
 
 	use_ks_curses();
-	io_cycle(*master);
+	run_singlethread_ui();
+	// run_multithread_ui();
 }

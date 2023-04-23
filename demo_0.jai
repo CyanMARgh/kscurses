@@ -1,6 +1,6 @@
 demo_0 :: () {
-	fill_function :: (coord : ivec2, size : ivec2) -> Char {
-		bx, by := coord.x < 6 || coord.x >= size.x-6, coord.y < 3 || coord.y >= size.y-3;
+	fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
+		bx, by := coord.x < 6 || coord.x >= zone.size.x-6, coord.y < 3 || coord.y >= zone.size.y-3;
 		if bx && by {
 			return make_char(#char "+",
 				foreground = .BRIGHT_RED,
@@ -14,15 +14,15 @@ demo_0 :: () {
 		} else {
 			return make_char(
 				#char "|", 
-				foreground = ifx coord.x * 2 < size.x Color.GREEN else .BRIGHT_GREEN,
-				bold = (coord.x % (size.x / 2)) < size.x / 4,
+				foreground = ifx coord.x * 2 < zone.size.x Color.GREEN else .BRIGHT_GREEN,
+				bold = coord.y < zone.size.y / 2,
+				dim = (coord.x * 4 < zone.size.x) || (coord.x * 2 >= zone.size.x && coord.x * 4 < zone.size.x * 3),
 				background = .BLACK,
-				dim = coord.y * 2 < size.y,
 				strikethrough = true
 			);
 		}
 	}
-	refresh_tab :: () {
+	draw_tab :: () {
 		using app_state;
 		for i : 0..ROWS-1 {
 			background := ifx i == cursor Color.BRIGHT_YELLOW else .BRIGHT_WHITE;
@@ -39,47 +39,49 @@ demo_0 :: () {
 				"selected option #%", selection
 			);
 		}
+		ks_print(.{8, 5}, make_graphics_mode(background = .YELLOW), "window size = % %", terminal_state.size.x, terminal_state.size.y);
 	}
-	refresh_all :: () {
+	draw :: () {
 		// using terminal_state;
 		using app_state;
+		ks_mode_reset();
 		ks_clear_screen();
-		resize_no_fill(*main_window, .{size=terminal_state.size});
-		fill(*main_window, fill_function);
-		refresh(*main_window);
-		ks_print(.{8, 4}, make_graphics_mode(background = .BLACK), "screen string size = %", print_string_size);
-		ks_print(.{8, 5}, make_graphics_mode(background = .YELLOW), "window size = % %", terminal_state.size.x, terminal_state.size.y);
-		refresh_tab();
+	
+		resize_fill(*main_canvas, .{size=terminal_state.size}, fill_function);
+		ks_draw_canvas(*main_canvas);
+		draw_tab();
 	};
-	terminal_state.on_resize = refresh_all;
 
 	use_ks_curses();
-	defer clear(main_window);
+	use_default_winch_handler();
+	defer deinit(*main_canvas);
 
 	using app_state;
 	while 1 {
+		draw();
 		input := ks_getch();
 		if input == {
-			case xx Key.UP;
+			case .UP;
 			if cursor > 0 cursor -= 1;
-			case xx Key.DOWN;
+			case .DOWN;
 			if cursor < ROWS - 1 cursor += 1;
-			case xx Key.ENTER;
+			case .ENTER;
 			if cursor == selection {
 				selection = -1;
 			} else {
 				selection = cursor;
 			}
-			case xx Key.ESCAPE;
+			case .ESCAPE;
 			break;
 		}
-		refresh_tab();
+		reset_temporary_storage();
 	}
 }
 
 #scope_file
 
-main_window : Window;
+main_canvas : Canvas;
+
 app_state : struct {
 	cursor, selection := 0, -1;
 	ROWS :: 5;
