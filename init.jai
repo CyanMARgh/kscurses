@@ -12,8 +12,10 @@ update_terminal_size :: () {
 	terminal_state.size = .{xx winsize.ws_col, xx winsize.ws_row};
 }
 
-__term : My_Termios;
 ks_init :: () {
+	__old_logger = context.logger;
+	context.logger = file_logger;
+
 	ks_write("\e[?25l");	// hide cursor
 	ks_write("\e7");		// save cursor position
 	ks_write("\e[?1047h");	// switch screen
@@ -36,7 +38,7 @@ ks_init :: () {
 	}
 	update_terminal_size();
 }
-ks_terminate :: () {
+ks_terminate :: () {	
 	tcsetattr(STDIN_FILENO, 0, *__term); // return echo
 
 	ks_write("\e[?47l");	// restore screen
@@ -44,6 +46,8 @@ ks_terminate :: () {
 	ks_write("\e[?25h");	// show cursor
 	ks_write("\e[?30h");	// show scrollbar
 	terminal_state = .{};
+
+	context.logger = __old_logger;
 }
 use_ks_curses :: () #expand {
 	ks_init();
@@ -73,6 +77,10 @@ deinit_default_winch_handler :: () {
 	sigaction(SIGWINCH, null, *sa);
 }
 
+#scope_file
+__term : My_Termios;
+__old_logger : type_of(context.logger);
+
 My_Termios :: struct {
 	c_iflag : u32;
 	c_oflag : u32;
@@ -84,7 +92,16 @@ My_Termios :: struct {
 	c_ospeed : u32;
 }
 
-#scope_file
 libc :: #system_library "libc";
 tcsetattr :: (fd : s32, optional_actions : s32, termios_p : *My_Termios) -> s32 #foreign libc;
 tcgetattr :: (fd : s32, termios_p : *My_Termios) -> s32 #foreign libc;
+
+#import "File";
+
+file_logger :: (message: string, data: *void, info: Log_Info) {
+	file, ok := file_open("log.txt",for_writing=true, keep_existing_content=true);
+	if !ok return;
+
+	file_write(*file, tprint("[%] %\n", calendar_to_string(to_calendar(current_time_consensus())), message));
+	file_close(*file);	
+}

@@ -2,7 +2,8 @@
 	ENABLE_SIGINT		:= true,
 	ENABLE_SIGQUIT		:= true,
 	TICK_DURATION_MS	:= 1000,
-	ENABLE_UI_BELL		:= true
+	ENABLE_UI_BELL		:= true,
+	ENABLE_UI_BLINKING	:= true
 );
 
 
@@ -13,16 +14,16 @@
 
 #assert OS == .LINUX;
 
-#load "queue.jai";
 #load "io.jai";
-// #load "resize.jai";
 #load "init.jai";
+#load "events.jai";
+
+// #load "resize.jai";
 #load "ivec.jai";
 #load "modes.jai";
 #load "print.jai";
 #load "utils.jai";
 #load "canvas.jai";
-#load "events.jai";
 
 #load "ui/style.jai";
 #load "ui/element.jai";
@@ -39,6 +40,7 @@
 #load "ui/line_input.jai";
 
 #load "lambdas.jai";
+#load "queue.jai";
 
 // TODO:
 
@@ -47,12 +49,10 @@
 //  - demos description
 // make better how_to
 
-// (maybe) change logger in context
 // add meaningfull assertion text
 // UI_Scene <- UI_Popup
 // painter/handler vtables
 // make adding new ui types posible
-// solve the problem with multithreading and canvas.
 // autogrow in line_input
 // detection of the element on which rendering breaks
 // extra debug lines on top

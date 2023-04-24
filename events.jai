@@ -197,7 +197,6 @@ start_clock_cycle :: (tick_duration_ms : s32) -> *Thread #expand {
 	clock_thread.data = tick_duration_ms_ptr;
 	print("clock = %\n\r", formatInt(clock_thread.thread_handle, base = 16));
 	thread_start(*clock_thread);
-	// assert(false);
 	return *clock_thread;
 }
 stop_clock_cycle :: (clock_thread : *Thread) {

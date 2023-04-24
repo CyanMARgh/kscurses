@@ -1,4 +1,5 @@
 demo_4 :: () {
+	log("some log!");
 	scene_manager : UI_Scene_Manager;
 		S0 : UI_Group;
 			btn_to_s1 : UI_Button = .{text = "swtch scene!"};
@@ -83,6 +84,6 @@ demo_4 :: () {
 	set_main_scene(.{*scene_manager, *e00});
 
 	use_ks_curses();
-	run_singlethread_ui();
-	// run_multithread_ui();
+	// run_singlethread_ui();
+	run_multithread_ui();
 }

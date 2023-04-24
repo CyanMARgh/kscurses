@@ -4,6 +4,8 @@ UI_Master :: struct {
 	root : *UI_Elem;
 	should_exit := false;
 
+	blink_stage := 0;
+
 	before_draw : struct {
 		proc := (data : *void){};
 		data : *void;
@@ -30,13 +32,15 @@ run_singlethread_ui :: () {
 	deinit(*__ui_master);
 }
 run_multithread_ui :: () {
-	use_events();
+	use_events(tick_duration_ms = 530);
 	__event_handler = .{
 		proc = (e : Event, __data : *void) {
 			using __ui_master;
 			if e.type == {
 				case .KEY;
 				handle_key(*__ui_master, e.key);
+				case .TICK;
+				#if ENABLE_UI_BLINKING __ui_master.blink_stage = xx !__ui_master.blink_stage;
 			}
 		},
 		data = null

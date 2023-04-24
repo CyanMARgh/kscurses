@@ -28,7 +28,7 @@ UI_Elem :: struct {
 }
 
 c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
-	ok := box_type == .NONE || c_box(canvas, zone, ifx cursor_state == .ON then style.box.cursor else style.box.default, box_type == .BORDER);
+	ok := box_type == .NONE || c_box(canvas, zone, ifx cursor_state == .ON && __ui_master.blink_stage != 1 then style.box.cursor else style.box.default, box_type == .BORDER);
 
 	if !ok return false;
 	content_zone := ifx box_type == .BORDER then cut_border(zone, 1) else zone;
@@ -73,6 +73,7 @@ c_draw_line_ascii :: (canvas : *Canvas, _line : string, zone : Ibox2, _offset : 
 }
 
 handle_key_move :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
+	__ui_master.blink_stage = 2;
 	active_elem := ui_elem;
 	assert(active_elem.cursor_state == .ON);
 	try_move :: (new_elem : *UI_Elem) #expand {
