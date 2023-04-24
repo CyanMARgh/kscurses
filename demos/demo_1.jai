@@ -9,7 +9,6 @@ demo_1 :: () {
 			if e.key == .ESCAPE then <<_stop_main = true;
 			case .TICK;
 			<<_ticks += 1;
-			// ks_write(tprint("tick = %\n\r", <<_ticks));
 			<<_video_runs = update_main_frame();
 		}
 	}});
@@ -17,7 +16,7 @@ demo_1 :: () {
 	prepare(); defer finalize();
 
 	use_ks_curses();
-	use_events();
+	use_events(tick_duration_ms = 40);
 
 	while !stop_main {
 		if wait_and_process_events() {
@@ -36,7 +35,7 @@ main_frame : []u8vec3;
 main_canvas : Canvas;
 
 prepare :: () {
-	plm = create_with_filename("clip.mpg");
+	plm = create_with_filename("demos/clip.mpg");
 	if !plm {
 		print("Couldn't open video\n");
 		exit(1);

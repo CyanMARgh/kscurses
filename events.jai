@@ -33,21 +33,20 @@ __event_handler : struct {
 	data : *void;
 }
 
-use_events :: () #expand {
+use_events :: (tick_duration_ms :s32= 1000, $use_clock := true, init_event := true) #expand {
 	init_mutexes();
-	clock_thread := start_clock_cycle();
+	#if use_clock clock_thread := start_clock_cycle(tick_duration_ms);
 	input_thread := start_input_cycle();
 	winlooker_thread := start_winlooker_cycle();
 	set_handler();
-	push_event(.{type = .INIT});
+	if init_event push_event(.{type = .INIT});
 	`defer {
 		restore_handler();
 		stop_winlooker_cycle(winlooker_thread);
 		stop_input_cycle(input_thread);
-		stop_clock_cycle(clock_thread);
+		#if use_clock stop_clock_cycle(clock_thread);
 		deinit_mutexes();
 		reset_globals();
-		// exit(1);
 	}
 }
 wait_and_process_events :: () -> bool {
@@ -179,17 +178,23 @@ stop_clock := false;
 clock_cycle :: (thread : *Thread) -> s64 {
 	start_time : timeval;
 	gettimeofday(*start_time, null);
+	tick_duration_ms := <<cast(*s32)thread.data;
 	while !stop_clock {
 		// TODO add autoalign
-		sleep_milliseconds(TICK_DURATION_MS);
+		sleep_milliseconds(tick_duration_ms);
 		if stop_clock break;
 		push_event(.{type = .TICK});
 	}
 	return 0;
 }
-start_clock_cycle :: () -> *Thread #expand {
+start_clock_cycle :: (tick_duration_ms : s32) -> *Thread #expand {
 	clock_thread : Thread;
 	thread_init(*clock_thread, clock_cycle);
+	
+	tick_duration_ms_ptr := New(s32);
+	<<tick_duration_ms_ptr = tick_duration_ms; 
+
+	clock_thread.data = tick_duration_ms_ptr;
 	print("clock = %\n\r", formatInt(clock_thread.thread_handle, base = 16));
 	thread_start(*clock_thread);
 	// assert(false);
@@ -199,6 +204,7 @@ stop_clock_cycle :: (clock_thread : *Thread) {
 	stop_clock = true;
 	pthread_cancel(clock_thread.thread_handle);
 	thread_deinit(clock_thread);
+	free(clock_thread.data);
 }
 
 // utils

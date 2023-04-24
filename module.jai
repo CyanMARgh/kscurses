@@ -1,9 +1,9 @@
-ENABLE_SIGINT	:: true;
-ENABLE_SIGTERM	:: true;
-ENABLE_SIGKILL	:: true;
-KEEP_CLIPBOARD	:: true; // true now for debug purposes
-
-#module_parameters(TICK_DURATION_MS := 1000, ENABLE_UI_BELL	:= true);
+#module_parameters(
+	ENABLE_SIGINT		:= true,
+	ENABLE_SIGQUIT		:= true,
+	TICK_DURATION_MS	:= 1000,
+	ENABLE_UI_BELL		:= true
+);
 
 
 #import "Basic"();
@@ -47,22 +47,18 @@ KEEP_CLIPBOARD	:: true; // true now for debug purposes
 //  - demos description
 // make better how_to
 
-// tick_duration_ms:int, enable_clock:bool and initial_event:bool in use_events()
-
 // (maybe) change logger in context
 // add meaningfull assertion text
 // UI_Scene <- UI_Popup
 // painter/handler vtables
 // make adding new ui types posible
 // solve the problem with multithreading and canvas.
-// replace []bool modes with flags
 // autogrow in line_input
 // detection of the element on which rendering breaks
 // extra debug lines on top
-// extra_handler :: (key : Key, *data)
 // scalable group / group view
 // 16 char support in box
-// make u8/u32 modes in text_buf line_input
+// make u8/u32 modes in text_buf & line_input
 // add block_input
 // add windows(os) support xd
 // (maybe) unset_active_recursive without arguments

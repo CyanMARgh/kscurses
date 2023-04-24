@@ -31,6 +31,7 @@ Key :: enum u64 {
 	CTRL_X			:: 0x18;
 	CTRL_Y			:: 0x19;
 	CTRL_Z			:: 0x1A;
+	CTRL_BACKSLASH	:: 0x1C;
 
 	// ALT_SHIFT_UP	:: 0x4133_3b315b1b;
 	// ALT_SHIFT_DOWN	:: 0x4233_3b315b1b;
@@ -43,34 +44,15 @@ Key :: enum u64 {
 	DELETE			:: 0x7E335B1B;
 }
 ks_getch :: (block := true) -> Key {
-	buf : u64 = 0;
+	buf : Key = xx 0;
 	l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
-	exit_code := get_exit_code(buf);
-	if exit_code {
-		ks_terminate();
-		exit(exit_code);
-	}	
-	return ifx l <= 0 then Key.READ_ERROR else xx buf;
+	check_signal(buf);
+	return ifx l <= 0 then Key.READ_ERROR else buf;
 
-	// buf : u64 = 0;
-	// // still not sure is it proper way to read key-by-key
-	// // but not noticed any bugs now 
-	// while 1 {
-	// 	l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
-	// 	if l > 0 {
-	// 		break;
-	// 	} else if !block {
-	// 		buf = xx Key.READ_ERROR;
-	// 		break;
-	// 	}
-	// }
-	get_exit_code :: inline (code : u64) -> s32 {
-		#if ENABLE_SIGINT if code == 3 return 130;
-		#if ENABLE_SIGTERM if code == 28 return 143;
-		return 0;
+	check_signal :: inline (key : Key) {
+		#if ENABLE_SIGINT if key == .CTRL_C raise(SIGINT);
+		#if ENABLE_SIGQUIT if key == .CTRL_BACKSLASH raise(SIGQUIT);
 	}
-
-	// return xx buf;
 }
 ks_write :: (str : string) {
 	printed := 0;
