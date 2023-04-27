@@ -44,23 +44,19 @@
 
 // TODO:
 
-// EDIT README 
-//	- features
-//  - demos description
 // make better how_to
 
 // add meaningfull assertion text
 // UI_Scene <- UI_Popup
-// painter/handler vtables
-// make adding new ui types posible
+// painter/handler vtables & make adding new ui types posible
 // autogrow in line_input
 // detection of the element on which rendering breaks
 // extra debug lines on top
 // scalable group / group view
+// + grid / group (maybe)
 // 16 char support in box
 // make u8/u32 modes in text_buf & line_input
 // add block_input
-// add windows(os) support xd
 // (maybe) unset_active_recursive without arguments
 
-// add module parameters 
+// add windows(os) support xd

@@ -8,7 +8,7 @@ update_terminal_size :: () {
 	winsize : struct {
 		ws_row, ws_col, ws_xpixel, ws_ypixel : u16;
 	}
-	ioctl(0, TIOCGWINSZ, *winsize);
+	ioctl(0, TIOCGWINSZ, *winsize);//!!!
 	terminal_state.size = .{xx winsize.ws_col, xx winsize.ws_row};
 }
 
@@ -25,7 +25,7 @@ ks_init :: () {
 	ks_write("\e[0m");		// set default mode
 	ks_write("\e[2J"); 		// clear screen
 	{
-		tcgetattr(STDIN_FILENO, *__term);
+		tcgetattr(STDIN_FILENO, *__term);//!!!
 		term_new := __term;
 
 		term_new.c_iflag &= 0xFFFFFA14;// ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
@@ -34,12 +34,12 @@ ks_init :: () {
 		term_new.c_cflag &= 0xFFFFFECF;// ~(CSIZE | PARENB);
 		term_new.c_cflag |= 0x00000030;
 
-		tcsetattr(STDIN_FILENO, 0, *term_new);	
+		tcsetattr(STDIN_FILENO, 0, *term_new);//!!!
 	}
 	update_terminal_size();
 }
 ks_terminate :: () {	
-	tcsetattr(STDIN_FILENO, 0, *__term); // return echo
+	tcsetattr(STDIN_FILENO, 0, *__term); // return echo //!!!
 
 	ks_write("\e[?47l");	// restore screen
 	ks_write("\e8");		// restore cursor
@@ -69,12 +69,12 @@ init_default_winch_handler :: () {
 		},
 		sa_mask = sigset_t.{__val[0] = SIGWINCH}
 	};
-	sigaction(SIGWINCH, *act, null);
+	sigaction(SIGWINCH, *act, null); //!!!
 }
 deinit_default_winch_handler :: () {
 	sa : sigaction_t;
 	sa.sa_handler = SIG_DFL;
-	sigaction(SIGWINCH, null, *sa);
+	sigaction(SIGWINCH, null, *sa); //!!!
 }
 
 #scope_file

@@ -222,7 +222,6 @@ init_mutexes :: () {
 
 	// pthread_cond_init(*clock_cond, null);
 	// pthread_cond_init(*event_wait_cond, null);
-
 }
 deinit_mutexes :: () {
 	// destroy(*clock_cond_mtx);

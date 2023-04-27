@@ -45,12 +45,12 @@ Key :: enum u64 {
 }
 ks_getch :: (block := true) -> Key {
 	buf : Key = xx 0;
-	l := read(STDIN_FILENO, (cast(*u8)*buf), 8);
+	l := read(STDIN_FILENO, (cast(*u8)*buf), 8); //!!!
 	check_signal(buf);
 	return ifx l <= 0 then Key.READ_ERROR else buf;
 
 	check_signal :: inline (key : Key) {
-		#if ENABLE_SIGINT if key == .CTRL_C raise(SIGINT);
+		#if ENABLE_SIGINT if key == .CTRL_C raise(SIGINT); //!!!
 		#if ENABLE_SIGQUIT if key == .CTRL_BACKSLASH raise(SIGQUIT);
 	}
 }
