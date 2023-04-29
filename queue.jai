@@ -37,3 +37,21 @@ deinit :: (using queue : *Queue($Element_Type)) {
 	array_free(buffer);
 	<<queue = .{};
 }
+for_expansion :: (queue : Queue, body : Code, flags : For_Flags) #expand {
+	for i : 0..queue.count-1 {
+		`it_index := i;
+		`it := queue.buffer[begin + i];
+
+		#insert body;
+	}
+}
+first :: (queue : Queue($Element_Type)) -> Element_Type, bool {
+	result : Element_Type;
+	if queue.count > 0 then result = queue.buffer[queue.begin];
+	return result, queue.count > 0;
+}
+last :: (using queue : Queue($Element_Type)) -> Element_Type, bool {
+	result : Element_Type;
+	if queue.count > 0 then result = queue.buffer[queue.begin + queue.count - 1];
+	return result, queue.count > 0;
+}

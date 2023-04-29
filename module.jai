@@ -44,8 +44,10 @@
 
 // TODO:
 
-// make better how_to
+// ks_draw_canvas (+) only_diff := true
+// restart_clock && multiple clocks
 
+// make better how_to
 // add meaningfull assertion text
 // UI_Scene <- UI_Popup
 // painter/handler vtables & make adding new ui types posible

@@ -1,0 +1,229 @@
+demo_8 :: () {
+	init(); defer finalize();
+
+	struct_lambda(#code { __event_handler; (e : Event)->(); {
+		if #complete game_state == {
+			case .START;
+			if e.type == .KEY && e.key == .ENTER {
+				game_state = .GAME;
+			}
+
+			case .GAME;
+			if e.type == {
+				case .KEY;
+				new_dir := key_to_dir(e.key);
+				if new_dir != .NONE && new_dir != backward(current_dir) {
+					current_dir = new_dir;
+					move();
+					tick_state = 2;
+				}
+				case .TICK;
+				tick_state = xx !tick_state;
+				if tick_state move();
+				case .WINCH;
+				game_canvas.refresh_all = true;
+			}
+
+			case .END;
+			if e.type == .KEY && e.key == .ENTER {
+				restart();
+				game_state = .GAME;
+			}
+		}
+
+		if e.type == .KEY && e.key == .ESCAPE {
+			stop_main = true;
+		}
+	}});
+
+	use_ks_curses();
+	use_events(tick_duration_ms = 200);
+
+	while !stop_main {
+		if wait_and_process_events() {
+			draw();
+			reset_temporary_storage();
+		}
+	}
+}
+
+#scope_file
+Direction :: enum u8 {
+	UP		:: 0;
+	RIGHT	:: 1;
+	DOWN	:: 2;
+	LEFT	:: 3;
+	NONE	:: 4;
+}
+backward :: (dir : Direction) -> Direction {
+	if #complete dir == {
+		case .LEFT; return .RIGHT;
+		case .RIGHT; return .LEFT;
+		case .UP; return .DOWN;
+		case .DOWN; return .UP;
+		case .NONE; return .NONE;
+	}
+}
+key_to_dir :: (key : Key) -> Direction {
+	return	 ifx key == .UP		Direction.UP
+		else ifx key == .RIGHT	Direction.RIGHT
+		else ifx key == .DOWN	Direction.DOWN
+		else ifx key == .LEFT	Direction.LEFT
+		else .NONE;
+}
+Cell :: enum u8 {
+	EMPTY	:: 0;
+	SNAKE	:: 1;
+	FRUIT	:: 2;
+}
+game_state : enum u8 {
+	START	:: 0;
+	GAME	:: 1;
+	END 	:: 2;
+}
+
+stop_main := false;
+grid_size :: ivec2.{21, 21};
+
+tick_state := 1;
+current_dir := Direction.RIGHT;
+
+
+snake_points : Queue(ivec2);
+game_map : []Cell;
+game_canvas : Canvas;
+// empty_cells : Table(ivec2, void, ivec2_hash, operator==);
+
+move :: (stretch := false) {
+	head_new := last(snake_points);
+	if current_dir == {
+		case .UP;	head_new += .{ 0, -1};
+		case .RIGHT;head_new += .{ 1,  0};
+		case .DOWN;	head_new += .{ 0,  1};
+		case .LEFT;	head_new += .{-1,  0};
+	}
+	if !point_inside(head_new, .{size = grid_size}) || map_get(head_new) == .SNAKE {
+		game_state = .END;
+		score = snake_points.count - 4;
+		best_score = max(best_score, score);
+		return;
+	}
+	if !stretch && map_get(head_new) != .FRUIT {
+		tail := pop(*snake_points);
+		map_set(tail, .EMPTY);
+	}
+	if map_get(head_new) == .FRUIT {
+		spawn_fruit();
+	}
+	push(*snake_points, head_new);
+	map_set(head_new, .SNAKE);
+}
+map_set :: (pos : ivec2, cell : Cell) {
+	game_map[pos.x + pos.y * grid_size.x] = cell;
+}
+map_get :: (pos : ivec2) -> Cell {
+	return game_map[pos.x + pos.y * grid_size.x];
+}
+restart :: () {
+	finalize();
+	init();
+}
+
+score := 0;
+best_score := 0;
+
+spawn_fruit :: () {
+	assert(snake_points.count <= grid_size.x * grid_size.y);
+	if snake_points.count == grid_size.x * grid_size.y return;	
+	ATTEMPTS :: 10;
+	for 1..ATTEMPTS {
+		pos := ivec2.{xx(random_get() % xx grid_size.x), xx(random_get() % xx grid_size.y)};
+		if map_get(pos) == .EMPTY {
+			map_set(pos, .FRUIT);
+			return;
+		}
+	}
+	for i : 0..grid_size.y * grid_size.x - 1 {
+		if game_map[i] == .EMPTY {
+			game_map[i] = .FRUIT;
+			return;			
+		}
+	}
+	assert(false);
+}
+
+init :: () {
+	score = 0;
+	tick_state = 1;
+	current_dir = .RIGHT;
+
+	game_map = NewArray(grid_size.x * grid_size.y, Cell);
+	push(*snake_points, .{10, 10}); map_set(.{10, 10}, .SNAKE);
+
+	move(true);
+	move(true);
+	move(true);
+
+	spawn_fruit();
+
+	resize_clear(*game_canvas, .{size = .{grid_size.x * 2, grid_size.y}}, make_char(#char " ", background = .GREEN));
+}
+finalize :: () {
+	deinit(*snake_points);
+	deinit(*game_canvas);
+	array_free(game_map);
+}
+
+CHAR_EMPTY :: #run make_char(#char" ", background = .GREEN);
+CHAR_SNAKE :: #run make_char(#char" ", background = .BRIGHT_WHITE);
+CHAR_FRUIT :: #run make_char(#char" ", background = .BRIGHT_RED);
+
+draw :: () {
+	if #complete game_state == {
+		case .START;
+		ks_mode_reset();
+		ks_clear_screen();
+		ks_print(.{0, 0}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "press ENTER to start");
+
+		case .GAME;
+		if inside(game_canvas.zone, terminal_state.size) {
+			for y : 0..grid_size.y-1 {
+				for x : 0..grid_size.x-1 {
+					cell := map_get(.{x, y});
+					char := ifx cell == .EMPTY CHAR_EMPTY else ifx cell == .SNAKE CHAR_SNAKE else CHAR_FRUIT;
+					c_putchar(*game_canvas, char, .{x * 2, y});
+					c_putchar(*game_canvas, char, .{x * 2 + 1, y});
+				}
+			}
+			if game_canvas.refresh_all {
+				ks_mode_reset();
+				ks_clear_screen();
+
+				delta := terminal_state.size - game_canvas.zone.size;
+				game_canvas.zone.corner = .{delta.x / 2, delta.y / 2};
+			}
+			ks_draw_canvas(*game_canvas);
+		} else {
+			ks_mode_reset();
+			ks_clear_screen();
+			ks_print(.{0, 0}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "screen too small!");
+
+			// assert(false);
+		}
+
+		case .END;
+		ks_mode_reset();
+		ks_clear_screen();
+		ks_print(.{0, 0}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "game over, score = %", score);
+		ks_print(.{0, 1}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "best score = %", best_score);
+		ks_print(.{0, 2}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "press ENTER to restart");
+	}
+}
+
+// ivec2_hash :: (val : ivec2) -> u32 {
+// 	return sdbm_hash(xx *val, size_of(ivec2), 5381);
+// }
+
+#import "Random";
+// #import "Hash";
+// #import "Hash_Table";

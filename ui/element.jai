@@ -1,13 +1,14 @@
 UI_Elem :: struct {
 	type : enum u8 {
-		NONE :: 0;
-		BUTTON :: 1;
-		TEXT_BUF :: 2;
-		GROUP :: 3;
-		SELECT_LIST :: 4;
-		SCENE_MANAGER :: 5;
-		POPUP_MANAGER :: 6;
-		LINE_INPUT :: 7;
+		NONE 			:: 0;
+		BUTTON 			:: 1;
+		TEXT_BUF 		:: 2;
+		GROUP 			:: 3;
+		SELECT_LIST 	:: 4;
+		SCENE_MANAGER 	:: 5;
+		POPUP_MANAGER 	:: 6;
+		LINE_INPUT 		:: 7;
+		SCALABLE_GROUP	:: 8;
 	} = .NONE;
 	MAX_TYPES :: 10;
 

@@ -107,9 +107,9 @@ b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 	}
 	links[count] = .{xx count, xx count};
 }
-c_putchar :: (using canvas : *Canvas, pixel : Char, pos : ivec2) {
-	if !point_inside(pos, zone) return;
-	pos_local := pos - zone.corner;
+c_putchar :: (using canvas : *Canvas, pixel : Char, pos_local : ivec2) {
+	// pos_local := pos - zone.corner;
+	if !point_inside(pos_local, .{size = zone.size}) return;
 	current := pos_local.x + pos_local.y * zone.width;
 
 	c_last_draw := pixels_last_draw[current];
