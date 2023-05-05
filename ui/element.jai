@@ -74,7 +74,9 @@ c_draw_line_ascii :: (canvas : *Canvas, _line : string, zone : Ibox2, _offset : 
 }
 
 handle_key_move :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
-	__ui_master.blink_stage = 2;
+	__ui_master.blink_stage = 0;
+	restart_clock_cycle();
+
 	active_elem := ui_elem;
 	assert(active_elem.cursor_state == .ON);
 	try_move :: (new_elem : *UI_Elem) #expand {

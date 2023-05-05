@@ -44,6 +44,7 @@
 
 // TODO:
 
+// stop_clock -> clock_state
 // ks_draw_canvas (+) only_diff := true
 // restart_clock && multiple clocks
 

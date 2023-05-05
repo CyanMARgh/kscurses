@@ -50,9 +50,8 @@ use_events :: (tick_duration_ms :s32= 1000, $use_clock := true, init_event := tr
 	}
 }
 wait_and_process_events :: () -> bool {
-	sem_wait(*event_wait_sem);
+	wait_for(*event_wait_sem);
 	lock(*event_queue_mtx); defer unlock(*event_queue_mtx);
-	// assert(event_queue.count != 1);
 	processed := false;
 	while 1 {
 		e, ok := pop(*event_queue);
@@ -71,11 +70,22 @@ push_event :: (e : Event) {
 	// notice = (event_queue.count == 0);
 	push(*event_queue, e);
 	unlock(*event_queue_mtx);
-	sem_post(*event_wait_sem);
+	signal(*event_wait_sem);
 
 	// lock(*event_wait_cond_mtx);
 	// pthread_cond_signal(*event_wait_cond);
 	// unlock(*event_wait_cond_mtx);
+}
+
+restart_clock_cycle :: () {
+	assert(clock_state != .DISABLED);
+
+	lock(*mtx_clock_state);
+		if clock_state != .STOP {
+			clock_state = .RESTART;
+		}
+		signal(*sem_clock_breaker);
+	unlock(*mtx_clock_state);
 }
 
 #scope_file
@@ -88,7 +98,7 @@ push_event :: (e : Event) {
 event_queue_mtx : Mutex;
 event_queue : Queue(Event);
 
-event_wait_sem : sem_t;
+event_wait_sem : Semaphore;
 
 // handler
 handler :: (sig : s32) #c_call {
@@ -119,6 +129,9 @@ restore_handler :: () {
 fd_winch : [2]s32;
 stop_winlooker := false;
 winlooker_cycle :: (thread : *Thread) -> s64 {
+
+
+
 	while !stop_winlooker {
 		msg : u8;
 		r := read(fd_winch[0], *msg, 1);
@@ -174,21 +187,45 @@ stop_input_cycle :: (input_thread : *Thread) {
 }
 
 // clock
-stop_clock := false;
+clock_state : enum u8 {
+	NORMAL	:: 0;
+	STOP	:: 1;
+	RESTART :: 2;
+	DISABLED:: 3;
+} = .DISABLED;
+sem_clock_breaker : Semaphore;
+mtx_clock_state : Mutex;
+
 clock_cycle :: (thread : *Thread) -> s64 {
-	start_time : timeval;
-	gettimeofday(*start_time, null);
 	tick_duration_ms := <<cast(*s32)thread.data;
-	while !stop_clock {
-		// TODO add autoalign
-		sleep_milliseconds(tick_duration_ms);
-		if stop_clock break;
-		push_event(.{type = .TICK});
+
+	while clock_state != .STOP {
+		lock(*mtx_clock_state); 
+			destroy(*sem_clock_breaker);
+			init(*sem_clock_breaker);
+			clock_state = .NORMAL;
+		unlock(*mtx_clock_state);
+
+		while 1 {
+			r := wait_for(*sem_clock_breaker, tick_duration_ms);
+
+			lock(*mtx_clock_state); defer unlock(*mtx_clock_state);
+			if clock_state != .NORMAL {
+				assert(r == .SUCCESS);
+				break;
+			} else {
+				push_event(.{type = .TICK});
+			}
+		}
 	}
 	return 0;
 }
 start_clock_cycle :: (tick_duration_ms : s32) -> *Thread #expand {
 	clock_thread : Thread;
+	init(*sem_clock_breaker);
+	init(*mtx_clock_state);
+	clock_state = .NORMAL;
+
 	thread_init(*clock_thread, clock_cycle);
 	
 	tick_duration_ms_ptr := New(s32);
@@ -200,37 +237,34 @@ start_clock_cycle :: (tick_duration_ms : s32) -> *Thread #expand {
 	return *clock_thread;
 }
 stop_clock_cycle :: (clock_thread : *Thread) {
-	stop_clock = true;
-	pthread_cancel(clock_thread.thread_handle);
+	lock(*mtx_clock_state);
+		clock_state = .STOP;
+		signal(*sem_clock_breaker);
+	unlock(*mtx_clock_state);
+
 	thread_deinit(clock_thread);
 	free(clock_thread.data);
+	clock_state = .DISABLED;
+	destroy(*sem_clock_breaker);
+	destroy(*mtx_clock_state);
 }
 
 // utils
 reset_globals :: () {
 	stop_input = false;
-	stop_clock = false;
+	clock_state = .NORMAL;
+	// stop_clock = false;
 	stop_winlooker = false;
 	fd_winch = .[0, 0];
 	deinit(*event_queue);
 }
 init_mutexes :: () {
-	// init(*clock_cond_mtx);
-	sem_init(*event_wait_sem, 0, 0);
+	init(*event_wait_sem);
 	init(*event_queue_mtx);
-	// init(*event_wait_cond_mtx);
-
-	// pthread_cond_init(*clock_cond, null);
-	// pthread_cond_init(*event_wait_cond, null);
 }
 deinit_mutexes :: () {
-	// destroy(*clock_cond_mtx);
 	destroy(*event_queue_mtx);
-	// destroy(*event_wait_cond_mtx);
-	sem_destroy(*event_wait_sem);
-
-	// pthread_cond_destroy(*clock_cond);
-	// pthread_cond_destroy(*event_wait_cond);	
+	destroy(*event_wait_sem);
 }
 
 

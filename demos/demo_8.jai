@@ -6,6 +6,7 @@ demo_8 :: () {
 			case .START;
 			if e.type == .KEY && e.key == .ENTER {
 				game_state = .GAME;
+				restart_clock_cycle();
 			}
 
 			case .GAME;
@@ -14,12 +15,11 @@ demo_8 :: () {
 				new_dir := key_to_dir(e.key);
 				if new_dir != .NONE && new_dir != backward(current_dir) {
 					current_dir = new_dir;
+					restart_clock_cycle();
 					move();
-					tick_state = 2;
 				}
 				case .TICK;
-				tick_state = xx !tick_state;
-				if tick_state move();
+				move();
 				case .WINCH;
 				game_canvas.refresh_all = true;
 			}
@@ -37,7 +37,7 @@ demo_8 :: () {
 	}});
 
 	use_ks_curses();
-	use_events(tick_duration_ms = 200);
+	use_events(tick_duration_ms = 400);
 
 	while !stop_main {
 		if wait_and_process_events() {
@@ -84,10 +84,9 @@ game_state : enum u8 {
 
 stop_main := false;
 grid_size :: ivec2.{21, 21};
+#assert grid_size.x >= 9;
 
-tick_state := 1;
 current_dir := Direction.RIGHT;
-
 
 snake_points : Queue(ivec2);
 game_map : []Cell;
@@ -132,39 +131,40 @@ restart :: () {
 score := 0;
 best_score := 0;
 
-spawn_fruit :: () {
-	assert(snake_points.count <= grid_size.x * grid_size.y);
-	if snake_points.count == grid_size.x * grid_size.y return;	
+FRUIT_COUNT :: #run max(1, grid_size.x * grid_size.y / 100);
+
+spawn_fruit :: () -> bool {
+	if snake_points.count + FRUIT_COUNT >= grid_size.x * grid_size.y return false;
 	ATTEMPTS :: 10;
 	for 1..ATTEMPTS {
 		pos := ivec2.{xx(random_get() % xx grid_size.x), xx(random_get() % xx grid_size.y)};
 		if map_get(pos) == .EMPTY {
 			map_set(pos, .FRUIT);
-			return;
+			return true;
 		}
 	}
 	for i : 0..grid_size.y * grid_size.x - 1 {
 		if game_map[i] == .EMPTY {
 			game_map[i] = .FRUIT;
-			return;			
+			return true;
 		}
 	}
-	assert(false);
+	return false;
 }
 
 init :: () {
 	score = 0;
-	tick_state = 1;
 	current_dir = .RIGHT;
 
 	game_map = NewArray(grid_size.x * grid_size.y, Cell);
-	push(*snake_points, .{10, 10}); map_set(.{10, 10}, .SNAKE);
+	center := ivec2.{grid_size.x / 2, grid_size.y / 2};
 
-	move(true);
-	move(true);
-	move(true);
+	push(*snake_points, center);
+	map_set(center, .SNAKE);
 
-	spawn_fruit();
+	for i : 1..3 move(true);
+
+	for i : 1..FRUIT_COUNT spawn_fruit();
 
 	resize_clear(*game_canvas, .{size = .{grid_size.x * 2, grid_size.y}}, make_char(#char " ", background = .GREEN));
 }
@@ -207,8 +207,6 @@ draw :: () {
 			ks_mode_reset();
 			ks_clear_screen();
 			ks_print(.{0, 0}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "screen too small!");
-
-			// assert(false);
 		}
 
 		case .END;
@@ -220,10 +218,4 @@ draw :: () {
 	}
 }
 
-// ivec2_hash :: (val : ivec2) -> u32 {
-// 	return sdbm_hash(xx *val, size_of(ivec2), 5381);
-// }
-
 #import "Random";
-// #import "Hash";
-// #import "Hash_Table";
