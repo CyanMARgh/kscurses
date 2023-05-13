@@ -7,8 +7,12 @@ UI_Master :: struct {
 	blink_stage := 0;
 
 	before_draw : struct {
-		proc := (data : *void){};
+		proc := (data : *void) { };
 		data : *void;
+	};
+	extra_handle : struct {
+		proc := (e : Event, data : *void) { };
+		data : *void;		
 	};
 }
 __ui_master : UI_Master;
@@ -42,6 +46,7 @@ run_multithread_ui :: () {
 				case .TICK;
 				#if ENABLE_UI_BLINKING __ui_master.blink_stage = xx !__ui_master.blink_stage;
 			}
+			extra_handle.proc(e, extra_handle.data);
 		},
 		data = null
 	}; defer __event_handler = .{};
