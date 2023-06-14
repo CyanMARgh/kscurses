@@ -102,6 +102,6 @@ file_logger :: (message: string, data: *void, info: Log_Info) {
 	file, ok := file_open("log.txt",for_writing=true, keep_existing_content=true);
 	if !ok return;
 
-	file_write(*file, tprint("[%] %\n", calendar_to_string(to_calendar(current_time_consensus())), message));
+	file_write(*file, tprint("[%] %", calendar_to_string(to_calendar(current_time_consensus())), message));
 	file_close(*file);	
 }
