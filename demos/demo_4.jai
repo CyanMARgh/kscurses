@@ -9,7 +9,8 @@ demo_4 :: () {
 			text_buf : UI_Text_Buf;
 			select_list : UI_Select_List;
 			draw_counter : UI_Text_Buf;
-		S1 : UI_Group;
+		// S1 : UI_Group;
+		S1 : UI_Scalable_Group;
 			btn_to_s0 : UI_Button = .{text = "swtch scene!"};
 
 	{
@@ -35,6 +36,7 @@ demo_4 :: () {
 	}});
 
 	select_list.options = .["option 1", "option 2", "option 3", "another option", "option #5", "option #7", "banana", "option #6"];
+	init(*select_list, false); defer deinit(*select_list);
 
 	set_sub_elements(*g0, 
 		.{*e00, .{8, 4, 0, 0}},
@@ -58,9 +60,13 @@ demo_4 :: () {
 		.{*select_list, .{20, 6,  0, 20}},
 		.{*draw_counter, .{15, 3, 0, 26}}
 	);
-	set_sub_elements(*S1,
-		.{*btn_to_s0, .{15, 5, 0,  0}}
+	// set_sub_elements(*S1,
+	// 	.{*btn_to_s0, .{15, 5, 0,  0}}
+	// );
+	set_sub_elements(*S1, 
+		.{*btn_to_s0, .{ metrics = .{15, 5, 0, 0} }}
 	);
+
 	set_sub_elements(*scene_manager,
 		.{*S0, *e00},
 		.{*S1, *btn_to_s0}

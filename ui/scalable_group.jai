@@ -1,36 +1,77 @@
-// set_elements_scalable :: (group : *UI_Group, elements : ..UI_Group.Element_Scalable)
+UI_Scalable_Group :: struct {
+	#as using base_parent : UI_Parent = .{type = .SCALABLE_GROUP};
 
-// anchor_lt :: (zone0 : Ibox2, size0 : ivec2, size : ivec2) -> Ibox2 {
-// 	return zone0;
-// }
-// anchor_c :: (zone0 : Ibox2, size0 : ivec2, size : ivec2) -> Ibox2 {
-// 	return .{size = zone0.size + size - size0, corner = zone0.corner};
-// }
-// anchor_rb :: (zone0 : Ibox2, size0 : ivec2, size : ivec2) -> Ibox2 {
-// 	return .{size = zone0.size, corner = zone0.corner + size - size0};
-// }
+	Scale_Params :: struct {
+		using metrics : struct {
+			x1, y1, x2, y2 : s32;
+			#place x1; v1 : ivec2;
+			#place x2; v2 : ivec2; 
+		};
+		scale_mode : enum u8 {
+			ANCHOR_TL :: 0; // v1 - size, v2 - offset from corner
+			ANCHOR_TR :: 1;
+			ANCHOR_BL :: 2;
+			ANCHOR_BR :: 3;
 
+			STRETCH_T :: 4; // x1/2 - left/right offset, y1 - top offset
+			STRETCH_B :: 5; // x1/2 - left/right offset, y1 - bottom offset
+			STRETCH_L :: 6; // y1/2 - top/bottom offset, x1 - left offset
+			STRETCH_R :: 7; // y1/2 - top/bottom offset, x1 - right offset
 
-// Scalable_Group :: struct {
-// 	#as using base_parent : UI_Parent = .{type = .SCALABLE_GROUP};
+			STRETCH   :: 8; // v1 - top-left offset, v2 - bottom-right offset
+			CENTERIZE :: 9; // v1 - size, v2 - offset from center
+		} = .ANCHOR_TL;
+	}
 
-// 	Element :: struct {
-// 		ptr : *UI_Elem;
-// 		zone0 : Ibox2;
-// 		scale_proc := anchor_lt;
-// 	}
-// 	elements : []Element;
-// }
+	Element :: struct {
+		ptr : *UI_Elem;
+		scale_params : Scale_Params;
+	}
 
-// //
+	elements : []Element;
+}
 
-// c_draw_scalable_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
-// 	using cast(*UI_Group) ui_elem;
-// 	for e : elements {
-// 		e_zone := e.zone;
-// 		if !inside(e_zone, zone.size) return false;
-// 		e_zone.corner += zone.corner;
-// 		if !c_draw(canvas, e.ptr, e_zone, style) return false;
-// 	}
-// 	return true;
-// }
+get_zone :: (using zone : Ibox2, using scale_params : UI_Scalable_Group.Scale_Params) -> Ibox2 {
+	if scale_mode == {
+		case .ANCHOR_TL;
+		return .{corner = corner + v2, size = v1};
+
+	}
+	assert(false);
+	return .{};
+}
+
+set_sub_elements :: (group : *UI_Scalable_Group, elements : ..UI_Scalable_Group.Element) {
+	group.elements = elements;
+	for e : elements {
+		e.ptr.parent = group;
+	}
+}
+c_draw_scalable_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
+	using cast(*UI_Scalable_Group) ui_elem;
+	for e : elements {
+		e_zone := get_zone(zone, e.scale_params);
+		if !inside(e_zone, zone) return false;
+		if !c_draw(canvas, e.ptr, e_zone, style) return false;
+	}
+	return true;
+}
+handle_key_scalable_group :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
+	using cast(*UI_Scalable_Group) ui_elem;
+	handled : bool;
+	if cursor_state == .ON {
+		assert(!active_element);
+		handled = handle_key_move(ui_elem, key);		
+	} else if cursor_state == .OUTSIDE {
+		assert(xx active_element);
+		{
+			ok := false;
+			for e : elements if e.ptr == active_element ok = true;
+			assert(ok);
+		}
+		handled = handle_key(active_element, key);
+	} else {
+		assert(false);
+	}
+	return handled;
+}

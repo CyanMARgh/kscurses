@@ -11,16 +11,20 @@ DEBUG :: true;
 #load "demos/demo_6.jai";
 #load "demos/demo_7.jai";
 #load "demos/demo_8.jai";
+// ???
+#load "demos/demo_10.jai";
 
 main :: () {
 	#if DEBUG defer report_memory_leaks();
 	// demo_0();
 	// demo_1();
-	demo_2();
+	// demo_2();
 	
 	demo_4();
-	demo_5();
-	demo_6();
-	demo_7();
-	demo_8();
+	// demo_5();
+	// demo_6();
+	// demo_7();
+	// demo_8();
+
+	// demo_10();
 }

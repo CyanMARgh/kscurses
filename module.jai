@@ -38,6 +38,8 @@
 #load "ui/scene_manager.jai";
 #load "ui/popup_manager.jai";
 #load "ui/line_input.jai";
+#load "ui/table.jai";
+#load "ui/scalable_group.jai";
 
 #load "lambdas.jai";
 #load "queue.jai";
@@ -51,15 +53,18 @@
 // make better how_to
 // add meaningfull assertion text
 // UI_Scene <- UI_Popup
-// painter/handler vtables & make adding new ui types posible
 // autogrow in line_input
 // detection of the element on which rendering breaks
 // extra debug lines on top
 // scalable group / group view
 // + grid / group (maybe)
-// 16 char support in box
-// make u8/u32 modes in text_buf & line_input
+// make text u8/u32 modes in text_buf, line_input & other
 // add block_input
 // (maybe) unset_active_recursive without arguments
+// left/center/right title/description for ui elements
+// plotter
+// tree/directory view
+// progress bar
+// push graphics mode
 
 // add windows(os) support xd
