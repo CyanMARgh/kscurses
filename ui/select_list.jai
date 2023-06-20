@@ -17,8 +17,6 @@ handle_key_select_list :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		if key == .ENTER {
 			cursor_state = .IN;
 			return true;
-		} else {
-			return handle_key_move(ui_elem, key);
 		}
 	} else {
 		if key == {
@@ -43,6 +41,7 @@ handle_key_select_list :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		}
 		return true;
 	}
+	return false;
 }
 init :: (select_list : *UI_Select_List, only_one := true) {
 	select_list.only_one = only_one;

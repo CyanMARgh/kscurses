@@ -64,7 +64,7 @@ demo_4 :: () {
 	// 	.{*btn_to_s0, .{15, 5, 0,  0}}
 	// );
 	set_sub_elements(*S1, 
-		.{*btn_to_s0, .{ metrics = .{15, 5, 0, 0} }}
+		.{*btn_to_s0, .{15, 5, 0, 0, .ANCHOR_TL}}
 	);
 
 	set_sub_elements(*scene_manager,
@@ -90,6 +90,6 @@ demo_4 :: () {
 
 	use_ks_curses();
 	// log("some log!");
-	// run_singlethread_ui();
-	run_multithread_ui();
+	run_singlethread_ui();
+	// run_multithread_ui();
 }

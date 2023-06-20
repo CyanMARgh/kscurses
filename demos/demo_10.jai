@@ -14,8 +14,6 @@ demo_10 :: () {
 
 	set_main_scene(.{*group, *table});
 
-
-
 	use_ks_curses();
-	run_singlethread_ui();
+	run_multithread_ui();
 }

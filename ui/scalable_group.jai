@@ -2,11 +2,11 @@ UI_Scalable_Group :: struct {
 	#as using base_parent : UI_Parent = .{type = .SCALABLE_GROUP};
 
 	Scale_Params :: struct {
-		using metrics : struct {
-			x1, y1, x2, y2 : s32;
-			#place x1; v1 : ivec2;
-			#place x2; v2 : ivec2; 
-		};
+		// using metrics : struct {
+		x1, y1, x2, y2 : s32;
+		#place x1; v1 : ivec2;
+		#place x2; v2 : ivec2; 
+		// };
 		scale_mode : enum u8 {
 			ANCHOR_TL :: 0; // v1 - size, v2 - offset from corner
 			ANCHOR_TR :: 1;
@@ -58,11 +58,10 @@ c_draw_scalable_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, st
 }
 handle_key_scalable_group :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	using cast(*UI_Scalable_Group) ui_elem;
-	handled : bool;
-	if cursor_state == .ON {
-		assert(!active_element);
-		handled = handle_key_move(ui_elem, key);		
-	} else if cursor_state == .OUTSIDE {
+	assert(cursor_state == .ON || cursor_state == .OUTSIDE);
+
+	handled := false;
+	if cursor_state == .OUTSIDE {
 		assert(xx active_element);
 		{
 			ok := false;
@@ -71,7 +70,7 @@ handle_key_scalable_group :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		}
 		handled = handle_key(active_element, key);
 	} else {
-		assert(false);
+		assert(xx !active_element);
 	}
 	return handled;
 }

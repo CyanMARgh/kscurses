@@ -29,16 +29,11 @@ handle_key_line_input :: (ui_elem : *UI_Elem, key : Key) -> bool {
 
 	if cursor_state == .IN {
 		return handle_inner(ui_line_input, key);
-	} else if cursor_state == .ON {
-		if handle_key_move(ui_elem, key) return true;
-		if key == .ENTER {
-			cursor_state = .IN;
-			return true;
-		}
-		return false;
-	} else {
-		assert(false);
+	} else if cursor_state == .ON && key == .ENTER {
+		cursor_state = .IN;
+		return true;
 	}
+
 	return false;
 }
 c_draw_line_input :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {

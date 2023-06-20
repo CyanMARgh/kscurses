@@ -71,9 +71,9 @@ c_draw_line_ascii :: (canvas : *Canvas, _line : string, zone : Ibox2, _offset : 
 }
 
 vtable_handle_key : []#type (*UI_Elem, Key) -> (bool) = .[
-	handle_key_move,
+	handle_key_none,
 	handle_key_button,
-	handle_key_move,
+	handle_key_none,
 	handle_key_group,
 	handle_key_select_list,
 	handle_key_scene_manager,
@@ -87,12 +87,17 @@ handle_key :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	assert(xx handle_proc);
 
 	handled := handle_proc(ui_elem, key);
+	// assert(cursor_state == .ON || cursor_state == .IN);
+	if !handled && cursor_state == .ON {
+		handled = handle_key_move(ui_elem, key);
+	}
 	
 	if !handled && extra_handler.proc {
 		handled = extra_handler.proc(key, extra_handler.data);
 	}
 	return handled;
 }
+handle_key_none :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool { return false; }
 handle_key_move :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	__ui_master.blink_stage = 0;
 	restart_clock_cycle();

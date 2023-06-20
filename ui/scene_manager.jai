@@ -20,11 +20,10 @@ set_sub_elements :: (ui_scene_manager : *UI_Scene_Manager, scenes : ..UI_Scene) 
 
 handle_key_scene_manager :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	using cast(*UI_Scene_Manager) ui_elem;
-	handled : bool;
-	if cursor_state == .ON {
-		assert(!active_element);
-		handled = handle_key_move(ui_elem, key);		
-	} else if cursor_state == .OUTSIDE {
+	assert(cursor_state == .ON || cursor_state == .OUTSIDE);
+
+	handled := false;
+	if cursor_state == .OUTSIDE {
 		assert(xx active_element);
 		{
 			ok := false;
@@ -33,7 +32,7 @@ handle_key_scene_manager :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		}
 		handled = handle_key(active_element, key);
 	} else {
-		assert(false);
+		assert(xx !active_element);
 	}
 	return handled;
 }

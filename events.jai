@@ -78,14 +78,14 @@ push_event :: (e : Event) {
 }
 
 restart_clock_cycle :: () {
-	assert(clock_state != .DISABLED);
-
-	lock(*mtx_clock_state);
-		if clock_state != .STOP {
-			clock_state = .RESTART;
-		}
-		signal(*sem_clock_breaker);
-	unlock(*mtx_clock_state);
+	if clock_state != .DISABLED {
+		lock(*mtx_clock_state);
+			if clock_state != .STOP {
+				clock_state = .RESTART;
+			}
+			signal(*sem_clock_breaker);
+		unlock(*mtx_clock_state);		
+	}
 }
 
 #scope_file

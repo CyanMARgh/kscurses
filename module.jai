@@ -46,6 +46,7 @@
 
 // TODO:
 
+// in set_main_scene check if root is predecessor of active element
 // stop_clock -> clock_state
 // ks_draw_canvas (+) only_diff := true
 // restart_clock && multiple clocks

@@ -26,11 +26,10 @@ c_draw_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI
 }
 handle_key_group :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	using cast(*UI_Group) ui_elem;
-	handled : bool;
-	if cursor_state == .ON {
-		assert(!active_element);
-		handled = handle_key_move(ui_elem, key);		
-	} else if cursor_state == .OUTSIDE {
+	assert(cursor_state == .ON || cursor_state == .OUTSIDE);
+
+	handled := false;
+	if cursor_state == .OUTSIDE {
 		assert(xx active_element);
 		{
 			ok := false;
@@ -39,7 +38,7 @@ handle_key_group :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 		}
 		handled = handle_key(active_element, key);
 	} else {
-		assert(false);
+		assert(xx !active_element);
 	}
 	return handled;
 }

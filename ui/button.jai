@@ -14,9 +14,8 @@ handle_key_button :: (ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	if key == .ENTER {
 		on_click.proc(on_click.data);
 		return true;
-	} else {
-		return handle_key_move(ui_elem, key);
 	}
+	return false;
 }
 c_draw_button :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	using cast(*UI_Button) ui_elem;
