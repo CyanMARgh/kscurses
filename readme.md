@@ -1,6 +1,8 @@
 # kscurses
 ## _Curses replacement on jai for my needs. Use at your own risk._
 
+`tested on version 0.1.067`
+
 Currently available support :
 - character input
 - window resize handle
@@ -21,11 +23,14 @@ Currently available support :
 
 demos list :
 - basic print methods, canvas and graphic modes usage
-- video (now uses events)
+- video (now uses events and color256 approximation with semi-transparent characters)
 - shorter canvas usage
+- ui : progress bars and extra events handler
 - ui : text buffer, buttons, selection list, groups, scenes
 - ui : popup
 - ui : line input
-- events processing
+- events processing without default ui
+- snake minigame
+- ui : table
 
 Currently works only on linux (tested on gnome terminal).

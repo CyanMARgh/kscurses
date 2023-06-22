@@ -1,15 +1,16 @@
 UI_Elem :: struct {
 	type : enum u8 {
-		NONE 			:: 0;
-		BUTTON 			:: 1;
-		TEXT_BUF 		:: 2;
-		GROUP 			:: 3;
-		SELECT_LIST 	:: 4;
-		SCENE_MANAGER 	:: 5;
-		POPUP_MANAGER 	:: 6;
-		LINE_INPUT 		:: 7;
-		SCALABLE_GROUP	:: 8;
-		TABLE			:: 9;
+		NONE 			::  0;
+		BUTTON 			::  1;
+		TEXT_BUF 		::  2;
+		GROUP 			::  3;
+		SELECT_LIST 	::  4;
+		SCENE_MANAGER 	::  5;
+		POPUP_MANAGER 	::  6;
+		LINE_INPUT 		::  7;
+		SCALABLE_GROUP	::  8;
+		TABLE			::  9;
+		PROGRESS_BAR	:: 10;
 	} = .NONE;
 
 	using visual_data : struct {
@@ -39,7 +40,8 @@ vtable_c_draw : []#type (*Canvas, *UI_Elem, Ibox2, *UI_Style) -> (bool) = .[
 	c_draw_popup_manager,
 	c_draw_line_input,
 	c_draw_scalable_group,
-	c_draw_table
+	c_draw_table,
+	c_draw_progress_bar
 ];
 c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	ok := box_type == .NONE || c_box(canvas, zone, ifx cursor_state == .ON && __ui_master.blink_stage != 1 then style.box.cursor else style.box.default, box_type == .BORDER);
@@ -80,7 +82,8 @@ vtable_handle_key : []#type (*UI_Elem, Key) -> (bool) = .[
 	handle_key_popup_manager,
 	handle_key_line_input,
 	handle_key_scalable_group,
-	handle_key_table
+	handle_key_table,
+	handle_key_none
 ];
 handle_key :: (using ui_elem : *UI_Elem, key : Key) -> handled:bool {
 	handle_proc := vtable_handle_key[ui_elem.type];

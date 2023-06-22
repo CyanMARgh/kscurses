@@ -40,16 +40,17 @@
 #load "ui/line_input.jai";
 #load "ui/table.jai";
 #load "ui/scalable_group.jai";
+#load "ui/progress_bar.jai";
 
 #load "lambdas.jai";
 #load "queue.jai";
 
 // TODO:
+// restart_clock && multiple clocks
 
 // in set_main_scene check if root is predecessor of active element
 // stop_clock -> clock_state
 // ks_draw_canvas (+) only_diff := true
-// restart_clock && multiple clocks
 
 // make better how_to
 // add meaningfull assertion text
@@ -65,7 +66,6 @@
 // left/center/right title/description for ui elements
 // plotter
 // tree/directory view
-// progress bar
 // push graphics mode
 
 // add windows(os) support xd

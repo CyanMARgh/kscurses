@@ -113,3 +113,67 @@ operator== :: (m1 : Graphics_Mode, m2 : Graphics_Mode) -> bool {
 	if m1.attr_flags != m2.attr_flags return false;
 	return true;
 }
+
+find_best_char :: (p : Vector3, use_mix : bool) -> Char {
+	cast_255 :: (x : float) -> s32 {
+		return clamp(cast(s32)(x * 255 + .5), 0, 255);
+	}
+	return find_best_char(ivec3.{cast_255(p.x), cast_255(p.y), cast_255(p.z)}, use_mix);
+}
+find_best_char :: (p : u8vec3, use_mix : bool) -> Char {
+	return find_best_char(cast_vec(s32, p), use_mix);
+}
+find_best_char :: (_p : ivec3, use_mix : bool) -> Char {
+	p := _p;
+	to_6level :: (x : s32) -> u8, s32 {
+		a := u8.[
+			0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 2, 2, 2, 2,
+			2, 2, 2, 2, 2, 2, 2, 3,
+			3, 3, 3, 3, 3, 3, 3, 3,
+			3, 4, 4, 4, 4, 4, 4, 4,
+			4, 4, 4, 5, 5, 5, 5, 5,
+		][clamp(x, 0, 255) >> 2];
+		return a, s32.[0, 87, 135, 175, 215, 255][a];
+	}
+
+	to_6level :: (v : ivec3) -> u8vec3, ivec3, dist:int {
+		i : u8vec3;
+		h : ivec3;
+		i.x, h.x = to_6level(v.x);
+		i.y, h.y = to_6level(v.y);
+		i.z, h.z = to_6level(v.z);
+		w := v - h;
+		return i, h, w.x * w.x + w.y * w.y + w.z * w.z;
+	}
+	col_code :: (v : u8vec3) -> u8 { return 16 + 36 * v.x + 6 * v.y + v.z; }
+
+	b_6, b_256 := to_6level(p);
+	code_00, code_25, code_50, code_75 := #run utf8(" "), #run utf8("░"), #run utf8("▒"), #run utf8("▓");
+
+	result := make_char(
+		code_00,
+		foreground = .COLOR256,
+		background = .COLOR256,
+		bcol256 = col_code(b_6)
+	);
+
+	if use_mix {
+		f_6_25, f_256_25, dist_25 := to_6level(p * 4 - b_256 * 3);
+		f_6_50, f_256_50, dist_50 := to_6level(p * 2 - b_256);
+		f_6_75, f_256_75, dist_75 := to_6level((p * 4 - b_256) / 3);
+
+
+		if dist_25 > dist_50 then f_6_25, code_25, dist_25 = f_6_50, code_50, dist_50;
+		if dist_25 > dist_75 then f_6_25, code_25, dist_25 = f_6_75, code_75, dist_75;
+
+		result.code = code_25;
+		result.mode.fcol256 = col_code(f_6_25);
+	}
+	return result;
+}
+
+#scope_file
+#import "Math";

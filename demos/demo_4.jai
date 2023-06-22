@@ -90,6 +90,6 @@ demo_4 :: () {
 
 	use_ks_curses();
 	// log("some log!");
-	run_singlethread_ui();
-	// run_multithread_ui();
+	// run_singlethread_ui();
+	run_multithread_ui();
 }

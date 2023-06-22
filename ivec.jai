@@ -23,6 +23,9 @@ operator* :: (a : Gen_Vec3($T), b : T) -> Gen_Vec3(T) {
 operator- :: (a : Gen_Vec3($T), b : Gen_Vec3(T)) -> Gen_Vec3(T) {
 	return .{a.x - b.x, a.y - b.y, a.z - b.z};
 }
+operator/ :: (a : Gen_Vec3($T), b : T) -> Gen_Vec3(T) {
+	return .{a.x / b, a.y / b, a.z / b};
+}
 operator== :: (a : Gen_Vec3($T), b : Gen_Vec3(T)) -> bool {
 	return a.x == b.x && a.y == b.y && a.z == b.z;
 }
