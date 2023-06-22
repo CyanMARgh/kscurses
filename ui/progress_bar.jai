@@ -18,19 +18,14 @@ set_value_ptr :: (progress_bar : *UI_Progress_Bar, value_ptr : *float) {
 
 c_draw_progress_bar :: (canvas : *Canvas, ui_elem : *UI_Elem, _zone : Ibox2, style : *UI_Style) -> bool {
 	using progress_bar := cast(*UI_Progress_Bar) ui_elem;
+	value_current := ifx value_ptr then <<value_ptr else value;
 	zone := _zone;
 	if zone.width < 6 return false;
 	if show_percent {
-		percent_str := tprint("%1%%", formatFloat(value * 100, width = 4, trailing_width = 1));
+		percent_str := tprint("%1%%", formatFloat(value_current * 100, width = 4, trailing_width = 1));
 		c_draw_line_ascii(canvas, percent_str, zone, .{zone.width - 5, zone.height / 2}, style.text.default);
 		zone.width -= 5;
 	}
-	c_draw_progress_bar_content(canvas, progress_bar, zone);
-	return true;
-}
-c_draw_progress_bar_content :: (canvas : *Canvas, using ui_elem : *UI_Progress_Bar, zone : Ibox2) -> bool {
-	value_current := ifx value_ptr then <<value_ptr else value;
-
 	for x : 0..zone.width-1 {
 		pix_coord := (x + .5) / zone.width;
 		char := find_best_char(draw_proc(value_current,  pix_coord), true);

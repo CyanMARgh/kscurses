@@ -3,7 +3,14 @@ demo_3 :: () {
 		buttons_group : UI_Group;
 			buttons : [3]UI_Button;
 		bars_group : UI_Group;
-			bars : [6]UI_Progress_Bar;
+			bars : [6]UI_Progress_Bar = .[
+				.{description = "velocity: x", description_pos = .TOP_LEFT},
+				.{description = "velocity: y", description_pos = .TOP_CENTER},
+				.{description = "velocity: z", description_pos = .TOP_RIGHT},
+				.{description = "acceleration: x", description_pos = .BOTTOM_LEFT},
+				.{description = "acceleration: y", description_pos = .BOTTOM_CENTER},
+				.{description = "acceleration: z", description_pos = .BOTTOM_RIGHT}
+			];
 	set_sub_elements(*main_group, 
 		.{*buttons_group, .{60, 10, 0, 0}},
 		.{*bars_group,    .{60, 20, 0, 10}}
@@ -16,6 +23,7 @@ demo_3 :: () {
 		.{*bars[4], .{58, 3, 0, 12}},
 		.{*bars[5], .{58, 3, 0, 15}}
 	);
+
 
 	values := array_copy(float.[.813, .123, .451, .234, .051, .567]);
 	defer array_free(values);

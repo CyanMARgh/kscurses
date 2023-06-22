@@ -16,6 +16,8 @@ UI_Elem :: struct {
 	using visual_data : struct {
 		cursor_state : enum u8 { OUTSIDE :: 0; ON :: 1; IN :: 2; } = .OUTSIDE;
 		box_type : enum u8 { NONE :: 0; BORDER :: 1; NO_BORDER :: 2; } = .BORDER;		
+		description_pos : enum u8 { TOP_LEFT :: 0; TOP_CENTER :: 1; TOP_RIGHT :: 2; BOTTOM_LEFT :: 4; BOTTOM_CENTER :: 5; BOTTOM_RIGHT :: 6; } = .TOP_LEFT;
+		description := "";		
 	}
 
 	using links : struct {
@@ -45,8 +47,10 @@ vtable_c_draw : []#type (*Canvas, *UI_Elem, Ibox2, *UI_Style) -> (bool) = .[
 ];
 c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	ok := box_type == .NONE || c_box(canvas, zone, ifx cursor_state == .ON && __ui_master.blink_stage != 1 then style.box.cursor else style.box.default, box_type == .BORDER);
-
 	if !ok return false;
+	ok = c_draw_description(canvas, ui_elem, zone, style);
+	if !ok return false;
+
 	content_zone := ifx box_type == .BORDER then cut_border(zone, 1) else zone;
 
 	c_draw_proc := vtable_c_draw[xx ui_elem.type];
@@ -54,22 +58,39 @@ c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI
 	return c_draw_proc(canvas, ui_elem, content_zone, style);
 }
 c_draw_default :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool { return true; };
-c_draw_line_ascii :: (canvas : *Canvas, _line : string, zone : Ibox2, _offset : ivec2, mode : Graphics_Mode) {
+c_draw_line_ascii :: (canvas : *Canvas, line : string, start : ivec2, mode : Graphics_Mode) {
+	for x : 0..line.count-1 c_putchar(canvas, .{code = xx line[x], mode = mode}, start + ivec2.{xx x, 0});
+}
+c_draw_line_ascii :: (canvas : *Canvas, _line : string, bounds : Ibox2, _offset : ivec2, mode : Graphics_Mode) {
 	offset := _offset;
 	view := _line;
 
-	if offset.y < 0 || offset.y >= zone.height return;
+	if offset.y < 0 || offset.y >= bounds.height return;
 	if offset.x < 0 {
 		view.count += offset.x;
 		view.data -= offset.x;
 		offset.x = 0;
 	}
-	if offset.x + view.count > zone.width {
-		view.count = zone.width - offset.x;
+	if offset.x + view.count > bounds.width {
+		view.count = bounds.width - offset.x;
 	}
-	for x : 0..view.count-1 {
-		c_putchar(canvas, .{code = xx view[x], mode = mode}, zone.corner + offset + ivec2.{xx x, 0});
+	c_draw_line_ascii(canvas, view, bounds.corner + offset, mode);
+}
+c_draw_description :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
+	if !description return true;
+	if description.count > zone.width - 2 return false;
+
+	top_or_bottom := !(description_pos & 4);
+	y := ifx top_or_bottom then zone.top else zone.top + zone.height - 1;
+
+	mode := style.text.default;
+	if description_pos & 3 == {
+		case 0; c_draw_line_ascii(canvas, description, .{zone.left, y}, mode);
+		case 1; c_draw_line_ascii(canvas, description, .{xx (zone.left + (zone.width - description.count) / 2), y}, mode);
+		case 2; c_draw_line_ascii(canvas, description, .{xx (zone.left + zone.width - description.count), y}, mode);
+		case; assert(false);
 	}
+	return true;
 }
 
 vtable_handle_key : []#type (*UI_Elem, Key) -> (bool) = .[
