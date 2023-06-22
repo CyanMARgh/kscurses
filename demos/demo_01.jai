@@ -1,4 +1,4 @@
-demo_1 :: () {
+demo_01 :: () {
 	video_runs := true;
 	stop_main := false;
 	ticks := 0;

@@ -1,4 +1,4 @@
-demo_4 :: () {
+demo_04 :: () {
 	scene_manager : UI_Scene_Manager;
 		S0 : UI_Group;
 			btn_to_s1 : UI_Button = .{text = "swtch scene!"};

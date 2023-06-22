@@ -26,6 +26,21 @@ link_grid :: (size : ivec2, elements : ..*UI_Elem) {
 		}
 	}
 }
+link_grid :: (size : ivec2, elements : []UI_Elem) {
+	assert(size.x * size.y == elements.count);
+	for y : 0..size.y-1 {
+		for x : 0..size.x-2 {
+			i := x + size.x * y;
+			link_lr(*elements[i], *elements[i + 1]);
+		}
+	}
+	for y : 0..size.y-2 {
+		for x : 0..size.x-1 {
+			i := x + size.x * y;
+			link_tb(*elements[i], *elements[i + size.x]);
+		}
+	}
+}
 link_row :: (elements : ..*UI_Elem) {
 	for i : 0..elements.count-2 {
 		link_lr(elements[i], elements[i + 1]);

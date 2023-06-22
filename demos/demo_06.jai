@@ -1,4 +1,4 @@
-demo_6 :: () {
+demo_06 :: () {
 	group : UI_Group;
 		text_buf : UI_Text_Buf;
 		line_input : UI_Line_Input;

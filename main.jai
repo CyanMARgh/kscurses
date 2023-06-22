@@ -2,31 +2,31 @@ DEBUG :: true;
 #import "Basic"()(MEMORY_DEBUGGER = DEBUG);
 #import,file "module.jai";
 
-#load "demos/demo_0.jai";
-#load "demos/demo_1.jai";
-#load "demos/demo_2.jai";
-#load "demos/demo_3.jai";
-#load "demos/demo_4.jai";
-#load "demos/demo_5.jai";
-#load "demos/demo_6.jai";
-#load "demos/demo_7.jai";
-#load "demos/demo_8.jai";
+#load "demos/demo_00.jai";
+#load "demos/demo_01.jai";
+#load "demos/demo_02.jai";
+#load "demos/demo_03.jai";
+#load "demos/demo_04.jai";
+#load "demos/demo_05.jai";
+#load "demos/demo_06.jai";
+#load "demos/demo_07.jai";
+#load "demos/demo_08.jai";
 // ?
 #load "demos/demo_10.jai";
 #load "demos/demo_11.jai";
 
 main :: () {
 	#if DEBUG defer report_memory_leaks();
-	// demo_0();
-	// demo_1();
-	// demo_2();
-	demo_3();
-	// demo_4();
-	// demo_5();
-	// demo_6();
-	// demo_7();
-	// demo_8();
+	// demo_00();
+	// demo_01();
+	// demo_02();
+	// demo_03();
+	// demo_04();
+	// demo_05();
+	// demo_06();
+	// demo_07();
+	// demo_08();
 
 	// demo_10();
-	// demo_11();
+	demo_11();
 }

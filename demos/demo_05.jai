@@ -1,4 +1,4 @@
-demo_5 :: () {
+demo_05 :: () {
 	popup_manager : UI_Popup_Manager;
 		background : UI_Group = .{box_type = .NO_BORDER};
 			lines : [..]string;

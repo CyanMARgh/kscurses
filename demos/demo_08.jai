@@ -1,4 +1,4 @@
-demo_8 :: () {
+demo_08 :: () {
 	init(); defer finalize();
 
 	struct_lambda(#code { __event_handler; (e : Event)->(); {

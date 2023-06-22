@@ -1,4 +1,4 @@
-demo_0 :: () {
+demo_00 :: () {
 	fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
 		bx, by := coord.x < 6 || coord.x >= zone.size.x-6, coord.y < 3 || coord.y >= zone.size.y-3;
 		if bx && by {

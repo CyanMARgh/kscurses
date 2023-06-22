@@ -18,7 +18,6 @@
 #load "init.jai";
 #load "events.jai";
 
-// #load "resize.jai";
 #load "ivec.jai";
 #load "modes.jai";
 #load "print.jai";
@@ -50,20 +49,21 @@
 
 // in set_main_scene check if root is predecessor of active element
 // stop_clock -> clock_state
-// ks_draw_canvas (+) only_diff := true
 
+// module overlap check / set minimum size of terminal
+
+// make generic_vec2/3
 // make better how_to
 // add meaningfull assertion text
 // UI_Scene <- UI_Popup
 // autogrow in line_input
 // detection of the element on which rendering breaks
 // extra debug lines on top
-// scalable group / group view
+// group view
 // + grid / group (maybe)
 // make text u8/u32 modes in text_buf, line_input & other
 // add block_input
 // (maybe) unset_active_recursive without arguments
-// left/center/right title/description for ui elements
 // plotter
 // tree/directory view
 // push graphics mode

@@ -1,4 +1,4 @@
-demo_7 :: () {
+demo_07 :: () {
 	ticks := 0;
 	last_key : Key;
 	last_event : Event;

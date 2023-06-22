@@ -1,4 +1,4 @@
-demo_2 :: () {
+demo_02 :: () {
 	defer deinit(*main_canvas);
 	use_ks_curses();
 	use_default_winch_handler();

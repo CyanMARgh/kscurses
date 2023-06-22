@@ -32,5 +32,6 @@ demos list :
 - events processing without default ui
 - snake minigame
 - ui : table
+- ui : scalable group and anchors
 
 Currently works only on linux (tested on gnome terminal).

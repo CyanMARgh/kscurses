@@ -1,4 +1,4 @@
-demo_3 :: () {
+demo_03 :: () {
 	main_group := UI_Group.{ box_type = .NO_BORDER };
 		buttons_group : UI_Group;
 			buttons : [3]UI_Button;
