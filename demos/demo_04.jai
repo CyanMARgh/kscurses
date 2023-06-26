@@ -22,18 +22,29 @@ demo_04 :: () {
 		draw_counter.lines = lines;
 	}
 
-	struct_lambda(#code {e20.on_click; text_buf; ()->(); {
+	e20.on_click.data = *text_buf;
+	e20.on_click.proc = (__data : *void) {
+		_text_buf := cast(type_of(*text_buf)) __data;
 		_text_buf.lines[2] = "click!";
-	}}); 
-	struct_lambda(#code {__ui_master.before_draw; draw_counter; ()->(); {
+	};
+
+	__ui_master.before_draw.data = *draw_counter;
+	__ui_master.before_draw.proc = (__data : *void) {
+		_draw_counter := cast(*type_of(draw_counter)) __data;
 		_draw_counter.lines[0] = tprint("% chars", __write_counter);
-	}}); 
-	struct_lambda(#code {btn_to_s1.on_click; scene_manager; ()->(); {
+	};
+
+	btn_to_s1.on_click.data = *scene_manager;
+	btn_to_s1.on_click.proc = (__data : *void) {
+		_scene_manager := cast(type_of(*scene_manager)) __data;
 		switch_scene(_scene_manager, 1);
-	}}); 
-	struct_lambda(#code {btn_to_s0.on_click; scene_manager; ()->(); {
+	};
+
+	btn_to_s0.on_click.data = *scene_manager;
+	btn_to_s0.on_click.proc = (__data : *void) {
+		_scene_manager := cast(type_of(*scene_manager)) __data;
 		switch_scene(_scene_manager, 0);
-	}});
+	};
 
 	select_list.options = .["option 1", "option 2", "option 3", "another option", "option #5", "option #7", "banana", "option #6"];
 	init(*select_list, false); defer deinit(*select_list);

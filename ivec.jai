@@ -1,3 +1,6 @@
+// Generic_Vector :: struct(Type)
+
+
 ivec2 :: struct {
 	x, y : s32;
 }

@@ -29,13 +29,16 @@ demo_03 :: () {
 	defer array_free(values);
 	for i : 0..5 set_value_ptr(*bars[i], *values[i]);
 
-	struct_lambda(#code { __ui_master.extra_handle; values; (e : Event) -> (); {
+	__ui_master.extra_handle.data = *(struct {_values : type_of(*values);}).{*values};
+	__ui_master.extra_handle.proc = (e : Event, __data : *void) {
+		using cast(*struct {_values : type_of(*values);}) __data;
 		if e.type == .TICK {
 			for * <<_values {
 				<<it *= .95;
 			}
 		}
-	}});
+	};
+
 
 	set_main_scene(.{*main_group, *buttons_group});
 

@@ -17,7 +17,9 @@ demo_06 :: () {
 	link_tb(*line_input, *text_buf);
 	set_main_scene(.{*group, *line_input});
 
-	struct_lambda(#code {line_input.extra_handler; line_input; lines; text_buf; (key : Key)->(bool); {
+	line_input.extra_handler.data = *(struct{_line_input : type_of(*line_input); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}).{*line_input, *lines, *text_buf};
+	line_input.extra_handler.proc = (key : Key, __data : *void) -> bool {
+		using cast(*struct{_line_input : type_of(*line_input); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}) __data;
 		if key == .ENTER {
 			str := get_string(_line_input);
 			reset(_line_input);
@@ -25,18 +27,20 @@ demo_06 :: () {
 			_text_buf.lines = <<_lines;
 			return true;
 		}
-		return false;
-	}});
-	struct_lambda(#code {text_buf.extra_handler; lines; text_buf; (key : Key)->(bool); {
+		return false;		
+	};
+
+	text_buf.extra_handler.data = *(struct{_lines : type_of(*lines); _text_buf : type_of(*text_buf);}).{*lines, *text_buf};
+	text_buf.extra_handler.proc = (key : Key, __data : *void) -> bool {
+		using cast(*struct{_lines : type_of(*lines); _text_buf : type_of(*text_buf);}) __data;
 		if key == .ENTER && _lines.count > 0 {
 			str := pop(_lines);
 			free(str);
 			_text_buf.lines = <<_lines;
 			return true;
 		}
-		return false;
-	}});
-
+		return false;		
+	};
 
 	use_ks_curses();
 	run_singlethread_ui();

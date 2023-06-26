@@ -1,9 +1,7 @@
 decl_lambda :: ($code_src : Code) -> Code #expand {
 	node_src := compiler_get_nodes(code_src);
 	proc_node, data_node, names, names_field, node_header, node_block := split_src(false, node_src);
-
 	pair_names, pair_srcs := get_lambda_pairs(proc_node, data_node, names, names_field, node_header, node_block);
-
 	return compiler_get_code(*Code_Compound_Declaration.{
 		kind = .COMPOUND_DECLARATION,
 		comma_separated_assignment = xx pair_names,
@@ -23,13 +21,15 @@ struct_lambda :: ($code_src : Code, parent_scope := #caller_code) #expand {
 #import "Compiler";
 #import "Basic";
 #import "Program_Print";
-
+debug_print_code :: (root : *Code_Node) {
+	builder := String_Builder.{allocator = temp};
+	print_expression(*builder, root);
+	print("%\n", builder_to_string(*builder, allocator = temp));
+}
 _assign_lambda :: ($code_src : Code) -> Code {
 	node_src := compiler_get_nodes(code_src);
 	proc_node, data_node, names, names_field, node_header, node_block := split_src(false, node_src);
-
 	pair_names, pair_srcs := get_lambda_pairs(proc_node, data_node, names, names_field, node_header, node_block);
-
 	node_assign := Code_Binary_Operator.{
 		kind = .BINARY_OPERATOR,
 		operator_type = #char"=",
@@ -41,27 +41,24 @@ _assign_lambda :: ($code_src : Code) -> Code {
 _struct_lambda :: ($code_src : Code) -> Code {
 	node_src := compiler_get_nodes(code_src);
 	proc_node, data_node, names, names_field, node_header, node_block := split_src(true, node_src);
-
 	pair_names, pair_srcs := get_lambda_pairs(proc_node, data_node, names, names_field, node_header, node_block);
-
 	node_assign := Code_Binary_Operator.{
 		kind = .BINARY_OPERATOR,
 		operator_type = #char"=",
 		left = pair_names,
 		right = pair_srcs
 	};
+	debug_print_code(*node_assign);
 	return compiler_get_code(*node_assign);
 }
 //TODO add support for non-"proc/data" names
 split_src :: (gen_pair : bool, node_src : *Code_Node) -> proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block #expand {
 	offset := ifx gen_pair then 1 else 2;
-
 	assert(node_src.kind == .BLOCK);
 	node_src_block := cast(*Code_Block) node_src;
 	node_src_statements := node_src_block.statements;
 	captured_count := node_src_statements.count - 2 - offset;
 	assert(captured_count >= 0);
-
 	names := NewArray(captured_count, string);
 	names_field := NewArray(captured_count, string);
 	for i : offset..captured_count-1+offset {
@@ -71,13 +68,11 @@ split_src :: (gen_pair : bool, node_src : *Code_Node) -> proc_node:*Code_Node, d
 		name := (cast(*Code_Ident)node_src_statements[i + offset]).name;
 		names[i], names_field[i] = name, sprint("_%", name);
 	}
-
 	assert(node_src_statements[captured_count + offset].kind == .PROCEDURE_HEADER);
 	node_header := cast(*Code_Procedure_Header) node_src_statements[captured_count + offset];
 	assert(node_src_statements[captured_count + offset + 1].kind == .BLOCK);
 	node_block := cast(*Code_Block) node_src_statements[captured_count + offset + 1];
 	assert(node_block.block_type == .IMPERATIVE);
-
 	proc_node, data_node : *Code_Node;
 	if gen_pair {
 		proc_node = *Code_Binary_Operator.{
@@ -101,19 +96,16 @@ split_src :: (gen_pair : bool, node_src : *Code_Node) -> proc_node:*Code_Node, d
 	} else {
 		proc_node, data_node = node_src_statements[0], node_src_statements[1];
 	}
-
 	return proc_node, data_node, names, names_field, node_header, node_block;
 }
 gen_struct_type_node :: (names : []string, names_field : []string) -> *Code_Node #expand {
 	captured_count := names.count;
-
 	nodes_ident := NewArray(captured_count, Code_Ident);
 	nodes_ptr := NewArray(captured_count, Code_Unary_Operator);
 	nodes_typeof := NewArray(captured_count, Code_Size_Or_Type_Info);
 	nodes_type := NewArray(captured_count, Code_Type_Instantiation);
 	nodes_declaration := NewArray(captured_count, Code_Declaration);
 	nodes_declaration_ptr := NewArray(captured_count, *Code_Node);
-
 	for i : 0..captured_count-1 {
 		nodes_ident[i] = .{
 			kind = .IDENT,
@@ -153,7 +145,6 @@ gen_struct_type_node :: (names : []string, names_field : []string) -> *Code_Node
 //TODO better assertions
 get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string, names_field:[]string, node_header:*Code_Procedure_Header, node_block:*Code_Block) -> pair_names:*Code_Node, pair_srcs:*Code_Node #expand {
 	node_0 := gen_struct_type_node(names, names_field);
-
 	stat_count := node_block.statements.count;
 	nodes_new_statements := NewArray(stat_count + 1, *Code_Node);
 	for i : 0..stat_count-1 {
@@ -177,7 +168,6 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 			}
 		}
 	};
-
 	arg_count := node_header.arguments.count;
 	node_new_args := NewArray(arg_count + 1, *Code_Declaration);
 	for i : 0..arg_count-1 {
@@ -198,11 +188,9 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 			}
 		}
 	};
-
 	nodes_13 := NewArray(names.count, Code_Ident);
 	nodes_14 := NewArray(names.count, Code_Unary_Operator);
 	nodes_14_ptr := NewArray(names.count, *Code_Node);
-
 	for i : 0..names.count-1 {
 		nodes_13[i] = Code_Ident.{
 			kind = .IDENT,
@@ -215,7 +203,6 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 		};
 		nodes_14_ptr[i] = *(nodes_14[i]);
 	}
-
 	exprs : [2]*Code_Node;
 	exprs[0] = *Code_Procedure_Header.{
 		kind = .PROCEDURE_HEADER,
@@ -244,17 +231,25 @@ get_lambda_pairs :: (proc_node:*Code_Node, data_node:*Code_Node, names:[]string,
 			}
 		}
 	};
+	_exprs : [2]Code_Comma_Separated_Argument = .[
+		.{exprs[0], .NONE},
+		.{exprs[1], .NONE},
+	];
 	node_19 := Code_Comma_Separated_Arguments.{
 		kind = .COMMA_SEPARATED_ARGUMENTS,
-		expressions = exprs
+		arguments = _exprs
 	};
 	exprs2 : [2]*Code_Node;
 	exprs2[0] = proc_node;
 	exprs2[1] = data_node;
+	_exprs2 : [2]Code_Comma_Separated_Argument = .[
+		.{exprs2[0], .NONE},
+		.{exprs2[1], .NONE},
+	];
+
 	node_22 := Code_Comma_Separated_Arguments.{
 		kind = .COMMA_SEPARATED_ARGUMENTS,
-		expressions = exprs2
+		arg = _exprs2
 	};
-
 	return *node_22, *node_19;
 }

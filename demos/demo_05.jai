@@ -28,17 +28,25 @@ demo_05 :: () {
 	);
 	link_lr(xx *btn_apple, xx *btn_apricot);
 
-	struct_lambda(#code {btn_add.on_click; popup_manager; select_popup_scene; ()->(); {
-		push(_popup_manager, <<_select_popup_scene);
-	}});
-	struct_lambda(#code {btn_apple.on_click; popup_manager; lines; text_buf; ()->(); {
+	btn_add.on_click.data = *(struct{_popup_manager : type_of(*popup_manager); _select_popup_scene : type_of(*select_popup_scene);}).{*popup_manager, *select_popup_scene};
+	btn_add.on_click.proc = (__data : *void) {
+		using cast(*struct{_popup_manager : type_of(*popup_manager); _select_popup_scene : type_of(*select_popup_scene);}) __data;
+		push(_popup_manager, <<_select_popup_scene);		
+	};
+
+	btn_apple.on_click.data = *(struct{_popup_manager : type_of(*popup_manager); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}).{*popup_manager, *lines, *text_buf};
+	btn_apple.on_click.proc = (__data : *void) {
+		using cast(*struct{_popup_manager : type_of(*popup_manager); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}) __data;
 		add_fruit(_lines, _text_buf, "apple");
 		pop(_popup_manager);
-	}});
-	struct_lambda(#code {btn_apricot.on_click; popup_manager; lines; text_buf; ()->(); {
+	};
+
+	btn_apricot.on_click.data = *(struct{_popup_manager : type_of(*popup_manager); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}).{*popup_manager, *lines, *text_buf};
+	btn_apricot.on_click.proc = (__data : *void) {
+		using cast(*struct{_popup_manager : type_of(*popup_manager); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}) __data;
 		add_fruit(_lines, _text_buf, "apricot");
 		pop(_popup_manager);
-	}});
+	};
 
 	set_background(*popup_manager, .{*background, *btn_add});
 	set_main_scene(.{*popup_manager, *btn_add});

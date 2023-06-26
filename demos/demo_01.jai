@@ -3,7 +3,9 @@ demo_01 :: () {
 	stop_main := false;
 	ticks := 0;
 
-	struct_lambda(#code { __event_handler; stop_main; ticks; video_runs; (e : Event)->(); {
+	__event_handler.data = *(struct {_ticks : *int; _video_runs : *bool; _stop_main : *bool;}).{*ticks, *video_runs, *stop_main};
+	__event_handler.proc = (e : Event, __data : *void) {
+		using cast(*struct {_ticks : *int; _video_runs : *bool; _stop_main : *bool;}) __data;
 		if e.type == {
 			case .KEY;
 			if e.key == .ESCAPE then <<_stop_main = true;
@@ -11,7 +13,7 @@ demo_01 :: () {
 			<<_ticks += 1;
 			<<_video_runs = update_main_frame();
 		}
-	}});
+	};
 
 	prepare(); defer finalize();
 

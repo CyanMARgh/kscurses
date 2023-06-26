@@ -1,14 +1,13 @@
 demo_08 :: () {
 	init(); defer finalize();
 
-	struct_lambda(#code { __event_handler; (e : Event)->(); {
+	__event_handler.proc = (e : Event, __data : *void) {
 		if #complete game_state == {
 			case .START;
 			if e.type == .KEY && e.key == .ENTER {
 				game_state = .GAME;
 				restart_clock_cycle();
 			}
-
 			case .GAME;
 			if e.type == {
 				case .KEY;
@@ -23,18 +22,16 @@ demo_08 :: () {
 				case .WINCH;
 				game_canvas.refresh_all = true;
 			}
-
 			case .END;
 			if e.type == .KEY && e.key == .ENTER {
 				restart();
 				game_state = .GAME;
 			}
 		}
-
 		if e.type == .KEY && e.key == .ESCAPE {
 			stop_main = true;
 		}
-	}});
+	};
 
 	use_ks_curses();
 	use_events(tick_duration_ms = 400);

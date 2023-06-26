@@ -85,9 +85,9 @@ c_draw_description :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2,
 
 	mode := style.text.default;
 	if description_pos & 3 == {
-		case 0; c_draw_line_ascii(canvas, description, .{zone.left, y}, mode);
+		case 0; c_draw_line_ascii(canvas, description, .{zone.left + 1, y}, mode);
 		case 1; c_draw_line_ascii(canvas, description, .{xx (zone.left + (zone.width - description.count) / 2), y}, mode);
-		case 2; c_draw_line_ascii(canvas, description, .{xx (zone.left + zone.width - description.count), y}, mode);
+		case 2; c_draw_line_ascii(canvas, description, .{xx (zone.left + zone.width - description.count - 1), y}, mode);
 		case; assert(false);
 	}
 	return true;

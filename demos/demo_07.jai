@@ -15,7 +15,9 @@ demo_07 :: () {
 	}
 
 	#if MULTITHREAD {
-		struct_lambda(#code { __event_handler; ticks; stop_main; last_key; last_event; events_count; (e : Event)->(); {
+		__event_handler.data = *(struct{_ticks : type_of(*ticks); _stop_main : type_of(*stop_main); _last_key : type_of(*last_key); _last_event : type_of(*last_event); _events_count : type_of(*events_count);}).{*ticks, *stop_main, *last_key, *last_event, *events_count};
+		__event_handler.proc = (e : Event, __data : *void) {
+			using cast(*struct{_ticks : type_of(*ticks); _stop_main : type_of(*stop_main); _last_key : type_of(*last_key); _last_event : type_of(*last_event); _events_count : type_of(*events_count);}) __data;
 			if e.type == {
 				case .KEY;
 				<<_last_key = e.key;
@@ -25,8 +27,8 @@ demo_07 :: () {
 			<<_last_event = e;
 			if e.type == .KEY && e.key == .ESCAPE {
 				<<_stop_main = true;
-			}
-		}});
+			}			
+		};
 		use_ks_curses();
 		use_events();
 		while !stop_main {
