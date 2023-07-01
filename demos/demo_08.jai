@@ -20,7 +20,7 @@ demo_08 :: () {
 				case .TICK;
 				move();
 				case .WINCH;
-				game_canvas.refresh_all = true;
+				game_canvas.force_full_refresh = true;
 			}
 			case .END;
 			if e.type == .KEY && e.key == .ENTER {
@@ -192,7 +192,7 @@ draw :: () {
 					c_putchar(*game_canvas, char, .{x * 2 + 1, y});
 				}
 			}
-			if game_canvas.refresh_all {
+			if game_canvas.force_full_refresh {
 				ks_mode_reset();
 				ks_clear_screen();
 

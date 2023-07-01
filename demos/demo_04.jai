@@ -31,7 +31,7 @@ demo_04 :: () {
 	__ui_master.before_draw.data = *draw_counter;
 	__ui_master.before_draw.proc = (__data : *void) {
 		_draw_counter := cast(*type_of(draw_counter)) __data;
-		_draw_counter.lines[0] = tprint("% chars", __write_counter);
+		_draw_counter.lines[0] = tprint("% chars", write_counter_delta());
 	};
 
 	btn_to_s1.on_click.data = *scene_manager;

@@ -58,23 +58,31 @@ c_draw :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI
 	return c_draw_proc(canvas, ui_elem, content_zone, style);
 }
 c_draw_default :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool { return true; };
-c_draw_line_ascii :: (canvas : *Canvas, line : string, start : ivec2, mode : Graphics_Mode) {
-	for x : 0..line.count-1 c_putchar(canvas, .{code = xx line[x], mode = mode}, start + ivec2.{xx x, 0});
-}
-c_draw_line_ascii :: (canvas : *Canvas, _line : string, bounds : Ibox2, _offset : ivec2, mode : Graphics_Mode) {
-	offset := _offset;
-	view := _line;
 
-	if offset.y < 0 || offset.y >= bounds.height return;
-	if offset.x < 0 {
-		view.count += offset.x;
-		view.data -= offset.x;
-		offset.x = 0;
+intersection_line :: (box : Ibox2, _line : string, _start : ivec2) -> line:string, start:ivec2 {
+	line, start := _line, _start;
+	if start.x < box.left {
+		line.count += start.x - box.left;
+		start.x = box.left;
 	}
-	if offset.x + view.count > bounds.width {
-		view.count = bounds.width - offset.x;
+	if start.x + line.count > box.left + box.width {
+		line.count = box.left + box.width - start.x;
 	}
-	c_draw_line_ascii(canvas, view, bounds.corner + offset, mode);
+	return line, start;
+}
+
+c_draw_line_ascii_raw :: (canvas : *Canvas, line : string, start : ivec2, mode : Graphics_Mode) {
+	for x : 0..line.count-1 c_putchar(canvas, .{code = xx line[x], mode = mode}, start + ivec2.{xx x, 0});	
+}
+
+c_draw_line_ascii :: (canvas : *Canvas, _line : string, _start : ivec2, mode : Graphics_Mode) {
+	line, start := intersection_line(canvas.zone, _line, _start);
+	c_draw_line_ascii_raw(canvas, line, start, mode);
+}
+c_draw_line_ascii :: (canvas : *Canvas, _line : string, bounds : Ibox2, offset : ivec2, mode : Graphics_Mode) {
+	assert(inside(bounds, canvas.zone));
+	line, start := intersection_line(bounds, _line, bounds.corner + offset);
+	c_draw_line_ascii_raw(canvas, line, start, mode);
 }
 c_draw_description :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	if !description return true;

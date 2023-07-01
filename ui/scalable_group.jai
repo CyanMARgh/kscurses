@@ -8,18 +8,21 @@ UI_Scalable_Group :: struct {
 		#place x2; v2 : ivec2; 
 		// };
 		scale_mode : enum u8 {
-			ANCHOR_TL :: 0; // v1 - size, v2 - offset from corner (both positive)
-			ANCHOR_TR :: 1;
-			ANCHOR_BL :: 2;
-			ANCHOR_BR :: 3;
+			ANCHOR_TL ::  0; // v1 - size, v2 - offset from corner (both positive)
+			ANCHOR_TR ::  1;
+			ANCHOR_BL ::  2;
+			ANCHOR_BR ::  3;
 
-			STRETCH_T :: 4; // x1/2 - left/right offset, y1 - top offset, y2 - height
-			STRETCH_B :: 5; // x1/2 - left/right offset, y1 - bottom offset, y2 - height
-			STRETCH_L :: 6; // y1/2 - top/bottom offset, x1 - left offset, x2 - width
-			STRETCH_R :: 7; // y1/2 - top/bottom offset, x1 - right offset, x2 - width
+			STRETCH_T ::  4; // x1/2 - left/right offset, y1 - top offset, y2 - height
+			STRETCH_B ::  5; // x1/2 - left/right offset, y1 - bottom offset, y2 - height
+			STRETCH_L ::  6; // y1/2 - top/bottom offset, x1 - left offset, x2 - width
+			STRETCH_R ::  7; // y1/2 - top/bottom offset, x1 - right offset, x2 - width
 
-			STRETCH_C :: 8; // v1 - top-left offset, v2 - bottom-right offset
-			CENTERIZE :: 9; // v1 - size, v2 - offset from center(signed)
+			STRETCH_C ::  8; // v1 - top-left offset, v2 - bottom-right offset
+			CENTERIZE ::  9; // v1 - size, v2 - offset from center(signed)
+
+			FIT_EXACT :: 10; //TODO
+			FIT_ROUGH :: 11;
 		} = .ANCHOR_TL;
 	}
 

@@ -7,7 +7,7 @@ Canvas :: struct {
 	links : []Link;
 
 	diff_count := 0;
-	refresh_all := false;
+	force_full_refresh := true;
 
 	Link :: struct { prev, next : s32; }
 }
@@ -36,41 +36,42 @@ resize_clear :: (using canvas : *Canvas, new_zone : Ibox2, filler := Char.{}) {
 			<<it = filler;
 		}
 	}
-	for i : 0..count-1 {
-		links[count] = .{-1, -1};
-	}
-	refresh_all = true;
+	links[count] = .{-1, -1};
+	force_full_refresh = true;
 }
+// add *void to fill_function
 resize_fill :: (using canvas : *Canvas, new_zone : Ibox2, fill_function : (coord : ivec2, zone : Ibox2) -> Char) {
-	array_free(pixels_last_draw);
-	array_free(pixels_buf);
-	array_free(links);
+	if zone != new_zone {
+		array_free(pixels_last_draw);
+		array_free(pixels_buf);
+		array_free(links);
 
-	zone = new_zone;
-	count = zone.width * zone.height;
+		zone = new_zone;
+		count = zone.width * zone.height;
 
-	pixels_last_draw = NewArray(count, Char);
-	pixels_buf = NewArray(count, Char);
-	links = NewArray(count + 1, Link);
-
-	links[count] = .{xx count, xx count};
-
-	i := 0;
-	for y : 0..zone.height-1 {
-		for x : 0..zone.width-1 {
-			pixels_buf[i] = fill_function(.{x, y}, zone);
-			i += 1;
-			diff_count += 1;
-		}
+		pixels_last_draw = NewArray(count, Char);
+		pixels_buf = NewArray(count, Char);
+		links = NewArray(count + 1, Link);
+		links[count] = .{xx count, xx count};
+		force_full_refresh = true;
 	}
 
-	for * links {
-		<<it = .{-1, -1};
-	}
-	refresh_all = true;
+	c_fill(canvas, fill_function);
+	// i := 0;
+	// for y : 0..zone.height-1 {
+	// 	for x : 0..zone.width-1 {
+	// 		pixels_buf[i] = fill_function(.{x, y}, zone);
+	// 		i += 1;
+	// 		diff_count += 1;
+	// 	}
+	// }
+
+	// for * links {
+	// 	<<it = .{-1, -1};
+	// }
 }
 b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
-	if refresh_all {
+	if force_full_refresh || diff_count * 4 > zone.width * zone.height {
 		i := 0;
 		for y : 0..zone.height-1 {
 			b_move_cursor(builder, zone.corner + ivec2.{0, y});
@@ -81,8 +82,10 @@ b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 				i += 1;
 			} 
 		}
-		refresh_all = false;
+
+		// log("case 1, %, %, %, %\n", force_full_refresh, diff_count, zone.width, zone.height);
 	} else {
+		// log("case 2\n");
 		last_pos := ivec2.{-1, -1};
 		current := links[count].next;
 		I := 0;
@@ -105,6 +108,9 @@ b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 			I += 1;
 		}
 	}
+
+	diff_count = 0;
+	force_full_refresh = false;
 	links[count] = .{xx count, xx count};
 }
 c_putchar :: (using canvas : *Canvas, pixel : Char, pos_local : ivec2) {
@@ -136,15 +142,21 @@ c_putchar :: (using canvas : *Canvas, pixel : Char, pos_local : ivec2) {
 }
 
 c_fill :: (using canvas : *Canvas, fill_function : (coord : ivec2, zone : Ibox2) -> Char) {
-	i := 0;
 	for y : 0..zone.height-1 {
 		for x : 0..zone.width-1 {
-			pixels_buf[i] = fill_function(.{x, y}, zone);
-			i += 1;
-			diff_count += 1;
+			char := fill_function(.{x, y}, zone);
+			c_putchar(canvas, char, .{x, y});
 		}
 	}
-	refresh_all = true;
+	// i := 0;
+	// for y : 0..zone.height-1 {
+	// 	for x : 0..zone.width-1 {
+	// 		pixels_buf[i] = fill_function(.{x, y}, zone);
+	// 		i += 1;
+	// 		diff_count += 1;
+	// 	}
+	// }
+	// refresh_all = true;
 }
 ks_draw_canvas :: (canvas : *Canvas) {
 	builder := String_Builder.{allocator = temp};

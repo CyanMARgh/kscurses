@@ -66,3 +66,8 @@ ks_write :: (str : string) {
 	__write_counter += str.count;
 }
 __write_counter := 0;
+write_counter_delta :: () -> int {
+	result := __write_counter;
+	__write_counter = 0;
+	return result;
+}

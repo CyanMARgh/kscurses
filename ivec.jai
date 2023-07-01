@@ -85,3 +85,15 @@ cut_border :: (box : Ibox2, gap : int) -> Ibox2 {
 centered_box :: (zone : Ibox2, box_size : ivec2) -> Ibox2, fit:bool {
 	return .{size = box_size, corner = zone.corner + ivec2.{(zone.width - box_size.x) / 2, (zone.height - box_size.y) / 2}}, inside(box_size, zone.size);
 }
+
+intersection :: (box1 : Ibox2, box2 : Ibox2) -> Ibox2 {
+	result : Ibox2 = ---;
+	
+	result.top = max(box1.top, box2.top);
+	result.left = max(box1.left, box2.left);
+
+	result.height = min(box1.top + box1.height, box2.top + box2.height) - result.top;
+	result.width = min(box1.left + box1.width, box2.left + box2.width) - result.left;
+
+	return result;
+}

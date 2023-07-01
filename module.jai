@@ -45,6 +45,11 @@
 #load "queue.jai";
 
 // TODO:
+// optimize canvas
+
+// in resize & fill: check if size same
+// add c_print_ascii_line, c_print_ascii_line_bounded
+
 // restart_clock && multiple clocks
 
 // in set_main_scene check if root is predecessor of active element

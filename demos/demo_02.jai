@@ -18,8 +18,8 @@ main_canvas : Canvas;
 
 draw :: () {
 	using terminal_state;
-	ks_mode_reset();
-	ks_clear_screen();
+	// ks_mode_reset();
+	// ks_clear_screen();
 
 	resize_fill(*main_canvas, .{size = terminal_state.size}, fill_function);
 	ks_draw_canvas(*main_canvas);

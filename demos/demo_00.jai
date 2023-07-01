@@ -26,30 +26,50 @@ demo_00 :: () {
 		using app_state;
 		for i : 0..ROWS-1 {
 			background := ifx i == cursor Color.BRIGHT_YELLOW else .BRIGHT_WHITE;
-			ks_print(
+			c_draw_line_ascii(*main_canvas, 
+				tprint("option #%", i),
 				.{9, xx (7 + i)},
-				make_graphics_mode(foreground = .GREEN, background = background, bold = i == selection, dim = i == cursor),
-				"option #%", i
+				make_graphics_mode(foreground = .GREEN, background = background, bold = i == selection, dim = i == cursor)
 			);
+
+			// ks_print(
+			// 	.{9, xx (7 + i)},
+			// 	make_graphics_mode(foreground = .GREEN, background = background, bold = i == selection, dim = i == cursor),
+			// 	"option #%", i
+			// );
 		}
 		if selection != -1 {
-			ks_print(
-				.{9, 8 + ROWS},
-				make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN),
-				"selected option #%", selection
+			c_draw_line_ascii(*main_canvas, 
+				tprint("selected option #%", selection),
+				.{9, xx (8 + ROWS)},
+				make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN)
 			);
+
+			// ks_print(
+			// 	.{9, 8 + ROWS},
+			// 	make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN),
+			// 	"selected option #%", selection
+			// );
 		}
-		ks_print(.{8, 5}, make_graphics_mode(background = .YELLOW), "window size = % %", terminal_state.size.x, terminal_state.size.y);
+		c_draw_line_ascii(*main_canvas,
+			tprint("window size = % %", terminal_state.size.x, terminal_state.size.y),
+			.{8, 5},
+			make_graphics_mode(background = .YELLOW)	
+		);
 	}
 	draw :: () {
 		// using terminal_state;
 		using app_state;
-		ks_mode_reset();
-		ks_clear_screen();
+		// ks_mode_reset();
+		// ks_clear_screen();
+
+		// if main_canvas.zone.size != terminal_state.size {
+			resize_fill(*main_canvas, .{size=terminal_state.size}, fill_function);
+		// }
 	
-		resize_fill(*main_canvas, .{size=terminal_state.size}, fill_function);
-		ks_draw_canvas(*main_canvas);
 		draw_tab();
+		ks_draw_canvas(*main_canvas);
+		log("printed = %\n", write_counter_delta());
 	};
 
 	use_ks_curses();
