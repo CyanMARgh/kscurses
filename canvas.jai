@@ -82,10 +82,7 @@ b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 				i += 1;
 			} 
 		}
-
-		// log("case 1, %, %, %, %\n", force_full_refresh, diff_count, zone.width, zone.height);
 	} else {
-		// log("case 2\n");
 		last_pos := ivec2.{-1, -1};
 		current := links[count].next;
 		I := 0;

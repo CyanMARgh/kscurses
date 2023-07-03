@@ -22,7 +22,7 @@ c_draw_progress_bar :: (canvas : *Canvas, ui_elem : *UI_Elem, _zone : Ibox2, sty
 	zone := _zone;
 	if zone.width < 6 return false;
 	if show_percent {
-		percent_str := tprint("%1%%", formatFloat(value_current * 100, width = 4, trailing_width = 1));
+		percent_str := tprint("%1%%", formatFloat(value_current * 100, width = 4, trailing_width = 1, zero_removal = .NO));
 		c_draw_line_ascii(canvas, percent_str, zone, .{zone.width - 5, zone.height / 2}, style.text.default);
 		zone.width -= 5;
 	}

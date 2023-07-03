@@ -69,7 +69,7 @@ demo_00 :: () {
 	
 		draw_tab();
 		ks_draw_canvas(*main_canvas);
-		log("printed = %\n", write_counter_delta());
+		// log("printed = %\n", write_counter_delta());
 	};
 
 	use_ks_curses();

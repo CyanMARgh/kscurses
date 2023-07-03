@@ -11,7 +11,7 @@ demo_08 :: () {
 			case .GAME;
 			if e.type == {
 				case .KEY;
-				new_dir := key_to_dir(e.key);
+				new_dir := key_to_dir_enum(e.key);
 				if new_dir != .NONE && new_dir != backward(current_dir) {
 					current_dir = new_dir;
 					restart_clock_cycle();
@@ -61,7 +61,7 @@ backward :: (dir : Direction) -> Direction {
 		case .NONE; return .NONE;
 	}
 }
-key_to_dir :: (key : Key) -> Direction {
+key_to_dir_enum :: (key : Key) -> Direction {
 	return	 ifx key == .UP		Direction.UP
 		else ifx key == .RIGHT	Direction.RIGHT
 		else ifx key == .DOWN	Direction.DOWN
