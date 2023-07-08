@@ -48,7 +48,7 @@ link_row :: (elements : ..*UI_Elem) {
 }
 link_column :: (elements : ..*UI_Elem) {
 	for i : 0..elements.count-2 {
-		link_td(elements[i], elements[i + 1]);
+		link_tb(elements[i], elements[i + 1]);
 	}	
 }
 link_to_outer :: (eo : *UI_Elem, ei : ..*UI_Elem) {

@@ -39,6 +39,15 @@ demo_03 :: () {
 		}
 	};
 
+	__ui_master.extra_handle.data = *(struct {_values : type_of(*values);}).{*values};
+	__ui_master.extra_handle.proc = (e : Event, __data : *void) {
+		using cast(*struct {_values : type_of(*values);}) __data;
+		if e.type == .TICK {
+			for * <<_values {
+				<<it *= .95;
+			}
+		}
+	};
 
 	set_main_scene(.{*main_group, *buttons_group});
 

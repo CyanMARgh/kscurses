@@ -18,26 +18,34 @@ deinit :: (using canvas : *Canvas) {
 	array_free(links);
 }
 resize_clear :: (using canvas : *Canvas, new_zone : Ibox2, filler := Char.{}) {
-	array_free(pixels_last_draw);
-	array_free(pixels_buf);
-	array_free(links);
+	if new_zone != zone {
+		array_free(pixels_last_draw);
+		array_free(pixels_buf);
+		array_free(links);
 
-	zone = new_zone;
-	count = zone.width * zone.height;
+		zone = new_zone;
+		count = zone.width * zone.height;
 
-	pixels_last_draw = NewArray(count, Char);
-	pixels_buf = NewArray(count, Char);
-	links = NewArray(count + 1, Link);
-
-	links[count] = .{xx count, xx count};
-
-	if filler != .{} then {
-		for * pixels_buf {
-			<<it = filler;
+		pixels_last_draw = NewArray(count, Char);
+		pixels_buf = NewArray(count, Char);
+		links = NewArray(count + 1, Link);
+		links[count] = .{xx count, xx count};
+	
+		if filler != .{} then {
+			for * pixels_buf {
+				<<it = filler;
+			}
 		}
+		links[count] = .{-1, -1};
+
+		force_full_refresh = true;
+	} else {
+		for y : 0..zone.height-1 {
+			for x : 0..zone.width-1 {
+				c_putchar(canvas, filler, .{xx x, xx y});
+			}
+		}		
 	}
-	links[count] = .{-1, -1};
-	force_full_refresh = true;
 }
 // add *void to fill_function
 resize_fill :: (using canvas : *Canvas, new_zone : Ibox2, fill_function : (coord : ivec2, zone : Ibox2) -> Char) {

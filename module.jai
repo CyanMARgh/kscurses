@@ -45,10 +45,15 @@
 #load "queue.jai";
 
 // TODO:
-// optimize canvas
+// remake canvas:
+//		-force full refresh only after resize / init
+// 		maybe_resize()
+//		fill_by_proc()
+//		clear()
 
-// in resize & fill: check if size same
-// add c_print_ascii_line, c_print_ascii_line_bounded
+
+//		in resize & fill: check if size same
+// 		add c_print_ascii_line, c_print_ascii_line_bounded
 
 // restart_clock && multiple clocks
 
