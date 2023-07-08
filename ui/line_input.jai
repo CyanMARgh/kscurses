@@ -106,11 +106,11 @@ is_printable :: (key : Key) -> bool {
 	return (code >= #char" " && code <= #char"~");
 }
 
-get_string :: (using ui_line_input : *UI_Line_Input) -> string {
+get_string :: (using ui_line_input : *UI_Line_Input, allocator := context.allocator) -> string {
 	result : string;
 	size := ptr_left + (buffer.count - ptr_right - 1);
 	result.count = size;
-	result.data = alloc(size);
+	result.data = alloc(size, allocator);
 
 	memcpy(result.data, buffer.data, ptr_left);
 	memcpy(result.data + ptr_left, buffer.data + ptr_right + 1, buffer.count - ptr_right - 1);
