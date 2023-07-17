@@ -100,19 +100,3 @@ intersection :: (box1 : Ibox2, box2 : Ibox2) -> Ibox2 {
 
 	return result;
 }
-
-arrow_code_to_ivec2 :: (key : Key, $swap_y := true) -> ivec2 {
-	#if swap_y {
-		return	 ifx key == .UP		ivec2.{ 0, -1}
-			else ifx key == .RIGHT	ivec2.{ 1,  0}
-			else ifx key == .DOWN	ivec2.{ 0,  1}
-			else ifx key == .LEFT	ivec2.{-1,  0}
-			else ivec2.{};		
-	} else {
-		return	 ifx key == .UP		ivec2.{ 0,  1}
-			else ifx key == .RIGHT	ivec2.{ 1,  0}
-			else ifx key == .DOWN	ivec2.{ 0, -1}
-			else ifx key == .LEFT	ivec2.{-1,  0}
-			else ivec2.{};		
-	}
-}

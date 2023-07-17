@@ -129,9 +129,6 @@ restore_handler :: () {
 fd_winch : [2]s32;
 stop_winlooker := false;
 winlooker_cycle :: (thread : *Thread) -> s64 {
-
-
-
 	while !stop_winlooker {
 		msg : u8;
 		r := read(fd_winch[0], *msg, 1);

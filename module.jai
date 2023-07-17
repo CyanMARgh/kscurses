@@ -12,7 +12,7 @@
 #import "Process";
 #import "String";
 
-#assert OS == .LINUX;
+// #assert OS == .LINUX;
 
 #load "io.jai";
 #load "init.jai";

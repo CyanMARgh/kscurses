@@ -36,3 +36,18 @@ char_bs :: (code : u32) -> u32 {
 utf8_bs :: (str : string) -> u32 {
 	return char_bs(utf8(str));
 }
+arrow_code_to_ivec2 :: (key : Key, $swap_y := true) -> ivec2 {
+	#if swap_y {
+		return	 ifx key == .UP		ivec2.{ 0, -1}
+			else ifx key == .RIGHT	ivec2.{ 1,  0}
+			else ifx key == .DOWN	ivec2.{ 0,  1}
+			else ifx key == .LEFT	ivec2.{-1,  0}
+			else ivec2.{};		
+	} else {
+		return	 ifx key == .UP		ivec2.{ 0,  1}
+			else ifx key == .RIGHT	ivec2.{ 1,  0}
+			else ifx key == .DOWN	ivec2.{ 0, -1}
+			else ifx key == .LEFT	ivec2.{-1,  0}
+			else ivec2.{};		
+	}
+}
