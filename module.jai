@@ -6,13 +6,13 @@
 	ENABLE_UI_BLINKING	:= true
 );
 
+#if OS == .LINUX {
+	#import "POSIX";
+}
 
 #import "Basic"();
-#import "POSIX";
 #import "Process";
 #import "String";
-
-// #assert OS == .LINUX;
 
 #load "io.jai";
 #load "init.jai";

@@ -44,25 +44,33 @@ Key :: enum u64 {
 	DELETE			:: 0x7E335B1B;
 }
 ks_getch :: (block := true) -> Key {
-	buf : Key = xx 0;
-	l := read(STDIN_FILENO, (cast(*u8)*buf), 8); //!!!
-	check_signal :: inline (key : Key) {
-		#if ENABLE_SIGINT if key == .CTRL_C raise(SIGINT); //!!!
-		#if ENABLE_SIGQUIT if key == .CTRL_BACKSLASH raise(SIGQUIT);
+	#if OS == .LINUX {
+		buf : Key = xx 0;
+		l := read(STDIN_FILENO, (cast(*u8)*buf), 8); //!!!
+		check_signal :: inline (key : Key) {
+			#if ENABLE_SIGINT if key == .CTRL_C raise(SIGINT); //!!!
+			#if ENABLE_SIGQUIT if key == .CTRL_BACKSLASH raise(SIGQUIT);
+		}
+		check_signal(buf);
+		return ifx l <= 0 then Key.READ_ERROR else buf;		
+	} else {
+		return .READ_ERROR;
 	}
-	check_signal(buf);
-	return ifx l <= 0 then Key.READ_ERROR else buf;
 }
 ks_write :: (str : string) {
-	printed := 0;
-	// while 1 {
-		r := write(STDIN_FILENO, str.data + printed, xx (str.count - printed));
-		// if printed + r == str.count {
-		// 	break;
-		// } else if r >= 0 {
-		// 	printed += r;
-		// }
-	// }
+	#if OS == .LINUX {
+		printed := 0;
+		// while 1 {
+			r := write(STDIN_FILENO, str.data + printed, xx (str.count - printed));
+			// if printed + r == str.count {
+			// 	break;
+			// } else if r >= 0 {
+			// 	printed += r;
+			// }
+		// }		
+	} else {
+		
+	}
 	__write_counter += str.count;
 }
 __write_counter := 0;
