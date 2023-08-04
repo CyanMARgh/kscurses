@@ -162,7 +162,7 @@ stop_winlooker_cycle :: (winlooker_thread : *Thread) {
 // input
 stop_input := false;
 input_cycle :: (thread : *Thread) -> s64 {
-	tcflush(STDIN_FILENO, TCIFLUSH);
+	#if OS == .LINUX tcflush(STDIN_FILENO, TCIFLUSH);
 	while !stop_input {
 		key := ks_getch();
 		if stop_input break;
@@ -267,7 +267,9 @@ deinit_mutexes :: () {
 
 TCIFLUSH :: 0;
 
-libc :: #system_library "libc";
-tcflush :: (fd : s32, queue_selector : s32) -> s32 #foreign libc;
+#if OS == .LINUX {
+	libc :: #system_library "libc";
+	tcflush :: (fd : s32, queue_selector : s32) -> s32 #foreign libc;
+}
 
 #import,dir "Thread";
