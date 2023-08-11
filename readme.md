@@ -1,9 +1,17 @@
 # kscurses
 ## _Curses replacement on jai for my needs. Use at your own risk._
 
-`tested on version 0.1.067`
+`tested on version 0.1.073`
 
-Currently available support :
+# setup & build
+1. download extra-containers module https://github.com/CyanMARgh/extra-containers
+2. move it to your extra modules folder
+3. specify this foder on top of demos/first.jai
+4. compile first.jai
+
+Currently works only on linux (tested on gnome terminal).
+
+# features list
 - character input
 - window resize handle
 - text modifiers (bold, italic, underline, blinking, inverse, strikethrough), color256 support
@@ -21,7 +29,7 @@ Currently available support :
 - - b_**method** : method prints to builder
 - - c_**method**: method prints to canvas
 
-demos list :
+# demos list
 - basic print methods, canvas and graphic modes usage
 - video (now uses events and color256 approximation with semi-transparent characters)
 - shorter canvas usage
@@ -33,5 +41,3 @@ demos list :
 - snake minigame
 - ui : table
 - ui : scalable group and anchors
-
-Currently works only on linux (tested on gnome terminal).

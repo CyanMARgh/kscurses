@@ -37,7 +37,7 @@ main_frame : []u8vec3;
 main_canvas : Canvas;
 
 prepare :: () {
-	plm = create_with_filename("demos/clip.mpg");
+	plm = create_with_filename("clip.mpg");
 	if !plm {
 		print("Couldn't open video\n");
 		exit(1);

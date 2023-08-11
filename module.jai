@@ -10,6 +10,15 @@
 	#import "POSIX";
 }
 
+// ivec2 :: Generic_Vector(s32, 2);
+// ivec3 :: Generic_Vector(s32, 3);
+// u8vec3 :: Generic_Vector(u8, 3);
+// Ibox2 :: Generic_Box(s32, 2);
+
+// #load "../Extra_Containers/module.jai";
+#import "Extra_Containers";
+
+
 #import "Basic"();
 #import "Process";
 #import "String";
@@ -18,7 +27,7 @@
 #load "init.jai";
 #load "events.jai";
 
-#load "ivec.jai";
+// #load "ivec.jai";
 #load "modes.jai";
 #load "print.jai";
 #load "utils.jai";
@@ -42,7 +51,7 @@
 #load "ui/progress_bar.jai";
 
 #load "lambdas.jai";
-#load "queue.jai";
+// #load "queue.jai";
 
 // TODO:
 // remake canvas:

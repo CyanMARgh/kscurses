@@ -37,7 +37,7 @@ c_draw_popup_manager :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, sty
 		popup_zone := zone;
 		ok : bool;
 		if layers[i].size != .{-1, -1} then {
-			popup_zone, ok = centered_box(zone, layers[i].size);
+			popup_zone, ok = fit_in_center(zone, layers[i].size);
 			if !ok return false;			
 		}
 		if !c_draw(canvas, layers[i].root, popup_zone, style) return false;
