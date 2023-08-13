@@ -253,4 +253,4 @@ TCIFLUSH :: 0;
 libc :: #system_library "libc";
 tcflush :: (fd : s32, queue_selector : s32) -> s32 #foreign libc;
 
-#import,dir "Thread";
+#import "Thread";
