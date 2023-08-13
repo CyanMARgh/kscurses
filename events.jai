@@ -65,16 +65,10 @@ wait_and_process_events :: () -> bool {
 pop_events :: () -> bool {
 }
 push_event :: (e : Event) {
-	// notice := false;
 	lock(*event_queue_mtx);
-	// notice = (event_queue.count == 0);
 	push(*event_queue, e);
 	unlock(*event_queue_mtx);
 	signal(*event_wait_sem);
-
-	// lock(*event_wait_cond_mtx);
-	// pthread_cond_signal(*event_wait_cond);
-	// unlock(*event_wait_cond_mtx);
 }
 
 restart_clock_cycle :: () {
@@ -89,15 +83,13 @@ restart_clock_cycle :: () {
 }
 
 #scope_file
-// SIGWINCH --sigaction--> handler --pipe--> winlooker --push_event--|--> event_queue --pop_events--> master thread
+// SIGWINCH --sigaction--> handler ---sem--> winlooker --push_event--|--> event_queue --pop_events--> master thread
 // 							     stdin --read--> input --push_event--|
 //												 clock --push_event--|
-
 
 // event_queue
 event_queue_mtx : Mutex;
 event_queue : Queue(Event);
-
 event_wait_sem : Semaphore;
 
 // handler
@@ -105,10 +97,9 @@ handler :: (sig : s32) #c_call {
 	new_context : Context;
 	push_context new_context {
 		if sig == SIGWINCH {
-			msg : u8 = 42;
-			write(fd_winch[1], *msg, 1);
+			signal(*winch_wait_sem);
 		} else {
-			print("signal = %\n\r", sig);
+			log("signal = %\n\r", sig);
 		}		
 	}
 }
@@ -126,37 +117,29 @@ restore_handler :: () {
 }
 
 // winlooker
-fd_winch : [2]s32;
+winch_wait_sem : Semaphore;
 stop_winlooker := false;
 winlooker_cycle :: (thread : *Thread) -> s64 {
 	while !stop_winlooker {
-		msg : u8;
-		r := read(fd_winch[0], *msg, 1);
+		wait_for(*winch_wait_sem);
 		if stop_winlooker break;
-		// assert(msg == 42); //TODO r != 1 case
 		update_terminal_size();
 		push_event(.{type = .WINCH});
 	}
-	// exit(2);
-	close(fd_winch[0]);
 	return 0;
 }
 start_winlooker_cycle :: () -> *Thread #expand {
-	pipe(*fd_winch);
+	init(*winch_wait_sem);
 	winlooker_thread : Thread;
 	thread_init(*winlooker_thread, winlooker_cycle);
-	print("winlooker = %\n\r", formatInt(winlooker_thread.thread_handle, base = 16));
 	thread_start(*winlooker_thread);
 	return *winlooker_thread;
 }
 stop_winlooker_cycle :: (winlooker_thread : *Thread) {
 	stop_winlooker = true;	
-	// exit(1);
-	close(fd_winch[1]);
-	// exit(1);
-	pthread_cancel(winlooker_thread.thread_handle);
+	signal(*winch_wait_sem);
 	thread_deinit(winlooker_thread);
-	// exit(1);
+	destroy(*winch_wait_sem);
 }
 
 // input
@@ -173,7 +156,7 @@ input_cycle :: (thread : *Thread) -> s64 {
 start_input_cycle :: () -> *Thread #expand {
 	input_thread : Thread;
 	thread_init(*input_thread, input_cycle);
-	print("input = %\n\r", formatInt(input_thread.thread_handle, base = 16));
+	log("input = %\n\r", formatInt(input_thread.thread_handle, base = 16));
 	thread_start(*input_thread);
 	return *input_thread;
 }
@@ -229,7 +212,7 @@ start_clock_cycle :: (tick_duration_ms : s32) -> *Thread #expand {
 	<<tick_duration_ms_ptr = tick_duration_ms; 
 
 	clock_thread.data = tick_duration_ms_ptr;
-	print("clock = %\n\r", formatInt(clock_thread.thread_handle, base = 16));
+	log("clock = %\n\r", formatInt(clock_thread.thread_handle, base = 16));
 	thread_start(*clock_thread);
 	return *clock_thread;
 }
@@ -252,7 +235,7 @@ reset_globals :: () {
 	clock_state = .NORMAL;
 	// stop_clock = false;
 	stop_winlooker = false;
-	fd_winch = .[0, 0];
+	// fd_winch = .[0, 0];
 	deinit(*event_queue);
 }
 init_mutexes :: () {
