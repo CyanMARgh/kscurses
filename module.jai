@@ -88,3 +88,4 @@
 // push graphics mode
 
 // add windows(os) support xd
+// (August 13, 2023). Fuck it, I don't want to deal with this shit anymore.
