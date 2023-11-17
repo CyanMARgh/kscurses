@@ -65,7 +65,7 @@ update_main_frame :: () -> ok:bool {
 fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
 	_x, _y := coord.x * (video_size.x - 1) / zone.width, coord.y * (video_size.y - 1) / zone.height;
 	pixel := ifx main_frame then main_frame[_y * video_size.x + _x] else u8vec3.{0, 0, 0};
-	return find_best_char(pixel, coord.x * 2 < zone.size.x);
+	return find_best_char(pixel, true);
 }
 draw :: (video_runs : bool) {
 	if video_runs {
