@@ -77,12 +77,7 @@ c_box :: (canvas : *Canvas, zone : Ibox2, using box_style : Box_Style, border :=
 b_box :: (builder : *String_Builder, zone : Ibox2, using charset := box_style_passive, mode := Graphics_Mode.{}, clear_center := true) {
 	assert(inside(zone, terminal_state.size));
 
-	charset : [9]u32;
-	if border {
-		charset = .[br, lr, bl, tb, c, tb, tr, lr, tl];
-	} else {
-		charset = .[c, c, c, c, c, c, c, c, c];
-	}
+	charset := u32.[br, lr, bl, tb, c, tb, tr, lr, tl];
 
 	b_move_cursor(builder, zone.corner);
 	b_mode_set(builder, mode);

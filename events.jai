@@ -60,8 +60,25 @@ wait_and_process_events :: () -> bool {
 		assert(e.type != .NONE);
 		__event_handler.proc(e, __event_handler.data);
 	}
+	assert(processed);
 	return processed;
 }
+Process_Events : struct {};
+for_expansion :: (__ : type_of(Process_Events), $body : Code, flags : For_Flags) #expand {
+	wait_for(*event_wait_sem);
+	lock(*event_queue_mtx); defer unlock(*event_queue_mtx);
+
+	`it_index := 0;
+	while 1 {
+		e, ok := pop(*event_queue);
+		if !ok break;
+
+		assert(e.type != .NONE);
+		`it := e;
+		#insert body;
+	}
+}
+
 pop_events :: () -> bool {
 }
 push_event :: (e : Event) {
@@ -156,7 +173,7 @@ input_cycle :: (thread : *Thread) -> s64 {
 start_input_cycle :: () -> *Thread #expand {
 	input_thread : Thread;
 	thread_init(*input_thread, input_cycle);
-	log("input = %\n\r", formatInt(input_thread.thread_handle, base = 16));
+	// log("input = %\n\r", formatInt(input_thread.thread_handle, base = 16));
 	thread_start(*input_thread);
 	return *input_thread;
 }
@@ -212,7 +229,7 @@ start_clock_cycle :: (tick_duration_ms : s32) -> *Thread #expand {
 	<<tick_duration_ms_ptr = tick_duration_ms; 
 
 	clock_thread.data = tick_duration_ms_ptr;
-	log("clock = %\n\r", formatInt(clock_thread.thread_handle, base = 16));
+	// log("clock = %\n\r", formatInt(clock_thread.thread_handle, base = 16));
 	thread_start(*clock_thread);
 	return *clock_thread;
 }

@@ -9,6 +9,16 @@ ui_bell :: inline () {
 	#if ENABLE_UI_BELL ks_bell();
 }
 
+// b_cursor_vis :: (builder : *String_Builder, show : bool) {
+// 	append(builder, ifx show "\e[?25h" else "\e[?25l");
+// }
+// t_cursor_vis :: (show : bool) {
+// 	return ifx show "\e[?25h" else "\e[?25l";
+// }
+// ks_cursor_vis :: (builder : *String_Builder) {
+// 	ks_write(ifx show "\e[?25h" else "\e[?25l");
+// }
+
 
 b_move_cursor :: inline (builder : *String_Builder, coord : ivec2) {
 	print_to_builder(builder, "\e[%;%H", coord.y + 1, coord.x + 1);
@@ -120,6 +130,9 @@ t_mode_set :: (mode : Graphics_Mode, update_state := true) -> string {
 	builder := String_Builder.{allocator = temp};
 	b_mode_set(*builder, mode, update_state);
 	return builder_to_string(*builder, temp);
+}
+ks_mode_set :: (mode : Graphics_Mode) {
+	ks_write(t_mode_set(mode));
 }
 
 ks_mode_reset :: (update_state := true) {

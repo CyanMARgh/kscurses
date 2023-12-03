@@ -17,16 +17,16 @@
 
 main :: () {
 	#if DEBUG defer report_memory_leaks();
-	demo_00();
-	demo_01();
-	demo_02();
-	demo_03();
-	demo_04();
-	demo_05();
-	demo_06();
+	// demo_00();
+	// demo_01();
+	// demo_02();
+	// demo_03();
+	// demo_04();
+	// demo_05();
+	// demo_06();
 	demo_07();
-	demo_08();
+	// demo_08();
 
-	demo_10();
-	demo_11();
+	// demo_10();
+	// demo_11();
 }

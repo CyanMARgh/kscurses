@@ -39,6 +39,7 @@ Key :: enum u64 {
 	// ALT_SHIFT_LEFT	:: 0x4433_3b315b1b;
 
 	ENTER			:: 0x0D;
+	TAB 			:: #char"\t";
 	ESCAPE			:: 0x1B;
 	BACKSPACE		:: 0x7F;
 	DELETE			:: 0x7E335B1B;

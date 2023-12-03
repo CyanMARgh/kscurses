@@ -3,3 +3,4 @@ old_ui/
 # main
 log.txt
 *.mpg
+*.elf

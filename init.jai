@@ -17,10 +17,10 @@ ks_init :: () {
 		__old_logger = context.logger;
 		context.logger = file_logger;
 
-		ks_write("\e[?25l");	// hide cursor
 		ks_write("\e7");		// save cursor position
 		ks_write("\e[?1047h");	// switch screen
 		ks_write("\e[?30l");	// hide scrollbar
+		ks_write("\e[?25l");	// hide cursor
 
 		ks_write("\e[H"); 		// move to top left corner
 		ks_write("\e[0m");		// set default mode
