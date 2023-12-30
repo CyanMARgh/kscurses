@@ -41,7 +41,7 @@ b_print :: (builder : *String_Builder, coord : ivec2, mode : Graphics_Mode, fmt 
 t_print :: (coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) -> string {
 	builder := String_Builder.{allocator = temp};
 	b_print(*builder, coord, mode, fmt, ..args);
-	return builder_to_string(*builder, temp);
+	return builder_to_string(*builder,, temp);
 }
 ks_print :: inline (coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) {
 	ks_write(t_print(coord, mode, fmt, ..args));

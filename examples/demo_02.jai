@@ -26,8 +26,8 @@ draw :: () {
 }
 fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
 	return find_best_char(.{
-		xx (coord.x * 255 / (zone.width - 1)),
-		xx (coord.y * 255 / (zone.height - 1)),
+		xx (coord.x * 255 / max(1, zone.width - 1)),
+		xx (coord.y * 255 / max(1, zone.height - 1)),
 		0
 	});
 }

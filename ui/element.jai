@@ -80,7 +80,7 @@ c_draw_line_ascii :: (canvas : *Canvas, _line : string, _start : ivec2, mode : G
 	c_draw_line_ascii_raw(canvas, line, start, mode);
 }
 c_draw_line_ascii :: (canvas : *Canvas, _line : string, bounds : Ibox2, offset : ivec2, mode : Graphics_Mode) {
-	assert(inside(bounds, canvas.zone));
+	assert(zone_inside_zone(bounds, canvas.zone));
 	line, start := intersection_line(bounds, _line, bounds.corner + offset);
 	c_draw_line_ascii_raw(canvas, line, start, mode);
 }

@@ -18,7 +18,7 @@ c_draw_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, style : *UI
 	using cast(*UI_Group) ui_elem;
 	for e : elements {
 		e_zone := e.zone;
-		if !inside(e_zone, zone.size) return false;
+		if !zone_inside_zone(e_zone, zone.size) return false;
 		e_zone.corner += zone.corner;
 		if !c_draw(canvas, e.ptr, e_zone, style) return false;
 	}

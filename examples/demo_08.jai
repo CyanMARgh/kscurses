@@ -98,7 +98,7 @@ move :: (stretch := false) {
 		case .DOWN;	head_new += .{ 0,  1};
 		case .LEFT;	head_new += .{-1,  0};
 	}
-	if !point_inside(head_new, .{size = grid_size}) || map_get(head_new) == .SNAKE {
+	if !point_inside_zone(head_new, grid_size) || map_get(head_new) == .SNAKE {
 		game_state = .END;
 		score = snake_points.count - 4;
 		best_score = max(best_score, score);
@@ -183,7 +183,7 @@ draw :: () {
 		ks_print(.{0, 0}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "press ENTER to start");
 
 		case .GAME;
-		if inside(game_canvas.zone, terminal_state.size) {
+		if zone_inside_zone(game_canvas.zone, terminal_state.size) {
 			for y : 0..grid_size.y-1 {
 				for x : 0..grid_size.x-1 {
 					cell := map_get(.{x, y});

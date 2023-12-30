@@ -63,7 +63,7 @@ c_draw_scalable_group :: (canvas : *Canvas, ui_elem : *UI_Elem, zone : Ibox2, st
 	using cast(*UI_Scalable_Group) ui_elem;
 	for e : elements {
 		e_zone := get_zone(zone, e.scale_params);
-		if !inside(e_zone, zone) return false;
+		if !zone_inside_zone(e_zone, zone) return false;
 		if !c_draw(canvas, e.ptr, e_zone, style) return false;
 	}
 	return true;

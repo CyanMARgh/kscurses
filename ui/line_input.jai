@@ -110,7 +110,7 @@ get_string :: (using ui_line_input : *UI_Line_Input, allocator := context.alloca
 	result : string;
 	size := ptr_left + (buffer.count - ptr_right - 1);
 	result.count = size;
-	result.data = alloc(size, allocator);
+	result.data = alloc(size,, allocator);
 
 	memcpy(result.data, buffer.data, ptr_left);
 	memcpy(result.data + ptr_left, buffer.data + ptr_right + 1, buffer.count - ptr_right - 1);

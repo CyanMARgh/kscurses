@@ -120,14 +120,15 @@ b_draw_canvas :: (builder : *String_Builder, using canvas : *Canvas) {
 }
 c_putchar :: (using canvas : *Canvas, pixel : Char, pos_local : ivec2) {
 	// pos_local := pos - zone.corner;
-	if !point_inside(pos_local, .{size = zone.size}) return;
+	if !pixel.code || !point_inside_zone(pos_local, zone.size) return;
+	// log("pos_local: %, zone : %\n", pos_local, zone);
 	current := pos_local.x + pos_local.y * zone.width;
 
 	c_last_draw := pixels_last_draw[current];
 	pixels_buf[current] = pixel;
 
 	if links[current].prev == -1 {
-		assert(links[current].next == -1);
+		assert(links[current].next == -1, "(0)");
 		if c_last_draw != pixel {
 			links[current] = .{links[count].prev, xx count};
 			links[links[count].prev].next = current;
@@ -137,13 +138,18 @@ c_putchar :: (using canvas : *Canvas, pixel : Char, pos_local : ivec2) {
 	} else {
 		if c_last_draw == pixel {
 			nbs := links[current];
-			assert(links[nbs.prev].next == current && links[nbs.next].prev == current);
+			assert(links[nbs.prev].next == current && links[nbs.next].prev == current, "(1)");
 			links[nbs.prev].next = nbs.next;
 			links[nbs.next].prev = nbs.prev;
 			links[current] = .{-1, -1};
 			diff_count -= 1;
 		}
 	}
+}
+
+at :: (using canvas : Canvas, pos : ivec2) -> Char {
+	current := pos.x + pos.y * zone.width;
+	return pixels_buf[current];
 }
 
 c_fill :: (using canvas : *Canvas, fill_function : (coord : ivec2, zone : Ibox2) -> Char) {
@@ -166,7 +172,7 @@ c_fill :: (using canvas : *Canvas, fill_function : (coord : ivec2, zone : Ibox2)
 ks_draw_canvas :: (canvas : *Canvas) {
 	builder := String_Builder.{allocator = temp};
 	b_draw_canvas(*builder, canvas);
-	ks_write(builder_to_string(*builder, allocator = temp));
+	ks_write(builder_to_string(*builder,, allocator = temp));
 }
 
 

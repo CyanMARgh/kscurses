@@ -54,8 +54,8 @@ UI_Style :: struct {
 }
 
 c_box :: (canvas : *Canvas, zone : Ibox2, using box_style : Box_Style, border := true) -> bool {
-	if !inside(ifx border then ivec2.{2, 2} else ivec2.{0, 0}, zone.size) return false;
-	assert(inside(zone, canvas.zone));
+	if !zone_inside_zone(ifx border then ivec2.{2, 2} else ivec2.{0, 0}, zone.size) return false;
+	assert(zone_inside_zone(zone, canvas.zone), "% / %", zone, canvas.zone);
 	charset : [9]u32;
 	if border {
 		charset[0], charset[1], charset[2], charset[3], charset[4], charset[5], charset[6], charset[7], charset[8] = br, lr, bl, tb, c, tb, tr, lr, tl;
@@ -75,7 +75,11 @@ c_box :: (canvas : *Canvas, zone : Ibox2, using box_style : Box_Style, border :=
 }
 
 b_box :: (builder : *String_Builder, zone : Ibox2, using charset := box_style_passive, mode := Graphics_Mode.{}, clear_center := true) {
-	assert(inside(zone, terminal_state.size));
+	if !zone_inside_zone(zone, terminal_state.size) {
+		log("[ERROR] zone = %, size = %", zone, terminal_state.size);
+		assert(false);
+	}
+	// assert(inside(zone, terminal_state.size), );
 
 	charset := u32.[br, lr, bl, tb, c, tb, tr, lr, tl];
 

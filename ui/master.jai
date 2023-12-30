@@ -85,7 +85,7 @@ draw :: (using ui_master : *UI_Master) {
 	b_cursor_set_visibility(*builder, terminal_state.cursor != ivec2.{-1, -1});
 	if terminal_state.cursor != ivec2.{-1, -1} then b_move_cursor(*builder, terminal_state.cursor);
 
-	ks_write(builder_to_string(*builder, allocator = temp));
+	ks_write(builder_to_string(*builder,, allocator = temp));
 }
 handle_key :: (using ui_master : *UI_Master, key : Key) {
 	handled := handle_key(root, key);
