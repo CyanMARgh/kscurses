@@ -38,13 +38,26 @@ b_print :: (builder : *String_Builder, coord : ivec2, mode : Graphics_Mode, fmt 
 	b_mode_set(builder, mode);
 	print_to_builder(builder, fmt, ..args);
 }
+b_printl :: (builder : *String_Builder, coord : ivec2, mode : Graphics_Mode, str : string) {
+	if coord != .{-1, -1} b_move_cursor(builder, coord);
+	b_mode_set(builder, mode);
+	append(builder, str);
+}
 t_print :: (coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) -> string {
 	builder := String_Builder.{allocator = temp};
 	b_print(*builder, coord, mode, fmt, ..args);
 	return builder_to_string(*builder,, temp);
 }
+t_printl :: (coord : ivec2, mode : Graphics_Mode, str : string) -> string {
+	builder := String_Builder.{allocator = temp};
+	b_printl(*builder, coord, mode, str);
+	return builder_to_string(*builder,, temp);
+}
 ks_print :: inline (coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) {
 	ks_write(t_print(coord, mode, fmt, ..args));
+}
+ks_printl :: inline (coord : ivec2, mode : Graphics_Mode, str : string) {
+	ks_write(t_printl(coord, mode, str));
 }
 
 

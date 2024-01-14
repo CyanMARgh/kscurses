@@ -146,6 +146,23 @@ c_putchar :: (using canvas : *Canvas, pixel : Char, pos_local : ivec2) {
 		}
 	}
 }
+c_printl_ascii :: (canvas : *Canvas, coord : ivec2, mode : Graphics_Mode, str : string) {
+	x, y := coord.x, coord.y;
+	for c, i : cast([]u8)str {
+		assert(!(c & 0x80), "str = %\n, c, i = %, %\n", str, c, i);
+		if c == #char"\n" {
+			y += 1;
+			x = coord.x;
+		} else {
+			c_putchar(canvas, .{code = xx c, mode = mode}, .{x, y});
+			x += 1;
+		}
+	}
+}
+
+c_print_ascii :: (canvas : *Canvas, coord : ivec2, mode : Graphics_Mode, fmt : string, args : ..Any) {
+	c_printl_ascii(canvas, coord, mode, tprint(fmt, ..args));
+}
 
 at :: (using canvas : Canvas, pos : ivec2) -> Char {
 	current := pos.x + pos.y * zone.width;
