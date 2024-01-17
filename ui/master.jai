@@ -1,6 +1,6 @@
 UI_Master :: struct {
 	style : UI_Style;
-	canvas : Canvas;
+	canvas : Screen_Canvas;
 	root : *UI_Elem;
 	should_exit := false;
 
@@ -68,13 +68,14 @@ run_multithread_ui :: () {
 
 #scope_file
 draw :: (using ui_master : *UI_Master) {
-	new_zone := Ibox2.{size = terminal_state.size};
+	new_size := terminal_state.size;
 	builder : String_Builder;
 
-	if new_zone != canvas.zone {
-		resize_clear(*canvas, new_zone);
+	if new_size != canvas.base.size {
+		resize(*canvas, new_size);
+		c_clear(*canvas, filler = #run make_char(#char" ", foreground = .BRIGHT_WHITE, background = .BLACK));
 	}
-	ok := c_draw(*canvas, root, canvas.zone, *style);
+	ok := c_draw(*canvas, root, .{size = canvas.base.size}, *style);
 	if ok {
 		ks_draw_canvas(*canvas);
 	} else {

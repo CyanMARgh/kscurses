@@ -25,25 +25,21 @@ demo_03 :: () {
 	);
 
 
-	values := array_copy(float.[.813, .123, .451, .234, .051, .567]);
+	values = array_copy(float.[.813, .123, .451, .234, .051, .567]);
 	defer array_free(values);
 	for i : 0..5 set_value_ptr(*bars[i], *values[i]);
 
-	__ui_master.extra_handle.data = *(struct {_values : type_of(*values);}).{*values};
 	__ui_master.extra_handle.proc = (e : Event, __data : *void) {
-		using cast(*struct {_values : type_of(*values);}) __data;
 		if e.type == .TICK {
-			for * <<_values {
+			for * values {
 				<<it *= .95;
 			}
 		}
 	};
 
-	__ui_master.extra_handle.data = *(struct {_values : type_of(*values);}).{*values};
 	__ui_master.extra_handle.proc = (e : Event, __data : *void) {
-		using cast(*struct {_values : type_of(*values);}) __data;
 		if e.type == .TICK {
-			for * <<_values {
+			for * values {
 				<<it *= .95;
 			}
 		}
@@ -54,3 +50,5 @@ demo_03 :: () {
 	use_ks_curses();
 	run_multithread_ui();
 }
+#scope_file
+values : []float;

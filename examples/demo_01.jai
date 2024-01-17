@@ -1,17 +1,15 @@
 demo_01 :: () {
-	video_runs := true;
-	stop_main := false;
-	ticks := 0;
+	video_runs = true;
+	stop_main = false;
+	ticks = 0;
 
-	__event_handler.data = *(struct {_ticks : *int; _video_runs : *bool; _stop_main : *bool;}).{*ticks, *video_runs, *stop_main};
 	__event_handler.proc = (e : Event, __data : *void) {
-		using cast(*struct {_ticks : *int; _video_runs : *bool; _stop_main : *bool;}) __data;
 		if e.type == {
-			case .KEY;
-			if e.key == .ESCAPE then <<_stop_main = true;
-			case .TICK;
-			<<_ticks += 1;
-			<<_video_runs = update_main_frame();
+		case .KEY;
+			if e.key == .ESCAPE then stop_main = true;
+		case .TICK;
+			ticks += 1;
+			video_runs = update_main_frame();
 		}
 	};
 
@@ -28,13 +26,18 @@ demo_01 :: () {
 	}
 }
 #scope_file
+
+video_runs := true;
+stop_main := false;
+ticks := 0;
+
 #import "pl_mpeg";
 #import "POSIX";
 
 plm : *Plm;
 video_size : ivec2;
 main_frame : []u8vec3;
-main_canvas : Canvas;
+main_canvas : Screen_Canvas;
 
 prepare :: () {
 	plm = create_with_filename("clip.mpg");
@@ -62,14 +65,15 @@ update_main_frame :: () -> ok:bool {
 	return true;
 }
 
-fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
-	_x, _y := coord.x * (video_size.x - 1) / zone.width, coord.y * (video_size.y - 1) / zone.height;
+fill_function :: (coord : ivec2, zone_size : ivec2) -> Char {
+	_x, _y := coord.x * (video_size.x - 1) / zone_size.x, coord.y * (video_size.y - 1) / zone_size.y;
 	pixel := ifx main_frame then main_frame[_y * video_size.x + _x] else u8vec3.{0, 0, 0};
 	return find_best_char(pixel, true);
 }
 draw :: (video_runs : bool) {
 	if video_runs {
-		resize_fill(*main_canvas, .{size = terminal_state.size}, fill_function);
+		resize(*main_canvas, terminal_state.size);
+		c_fill(*main_canvas, fill_function);
 		ks_draw_canvas(*main_canvas);		
 	} else {
 		ks_mode_reset();

@@ -71,18 +71,14 @@ intersection_line :: (box : Ibox2, _line : string, _start : ivec2) -> line:strin
 	return line, start;
 }
 
-c_draw_line_ascii_raw :: (canvas : *Canvas, line : string, start : ivec2, mode : Graphics_Mode) {
-	for x : 0..line.count-1 c_putchar(canvas, .{code = xx line[x], mode = mode}, start + ivec2.{xx x, 0});	
-}
-
 c_draw_line_ascii :: (canvas : *Canvas, _line : string, _start : ivec2, mode : Graphics_Mode) {
-	line, start := intersection_line(canvas.zone, _line, _start);
-	c_draw_line_ascii_raw(canvas, line, start, mode);
+	line, start := intersection_line(.{size = canvas.size}, _line, _start);
+	c_print_ascii(canvas, start, mode, line);
 }
 c_draw_line_ascii :: (canvas : *Canvas, _line : string, bounds : Ibox2, offset : ivec2, mode : Graphics_Mode) {
-	assert(zone_inside_zone(bounds, canvas.zone));
+	assert(zone_inside_zone(bounds, canvas.size));
 	line, start := intersection_line(bounds, _line, bounds.corner + offset);
-	c_draw_line_ascii_raw(canvas, line, start, mode);
+	c_print_ascii(canvas, start, mode, line);
 }
 c_draw_description :: (canvas : *Canvas, using ui_elem : *UI_Elem, zone : Ibox2, style : *UI_Style) -> bool {
 	if !description return true;

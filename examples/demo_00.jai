@@ -1,6 +1,6 @@
 demo_00 :: () {
-	fill_function :: (coord : ivec2, zone : Ibox2) -> Char {
-		bx, by := coord.x < 6 || coord.x >= zone.size.x-6, coord.y < 3 || coord.y >= zone.size.y-3;
+	fill_function :: (coord : ivec2, zone_size : ivec2) -> Char {
+		bx, by := coord.x < 6 || coord.x >= zone_size.x-6, coord.y < 3 || coord.y >= zone_size.y-3;
 		if bx && by {
 			return make_char(#char "+",
 				foreground = .BRIGHT_RED,
@@ -14,9 +14,9 @@ demo_00 :: () {
 		} else {
 			return make_char(
 				#char "|", 
-				foreground = ifx coord.x * 2 < zone.size.x Color.GREEN else .BRIGHT_GREEN,
-				bold = coord.y < zone.size.y / 2,
-				dim = (coord.x * 4 < zone.size.x) || (coord.x * 2 >= zone.size.x && coord.x * 4 < zone.size.x * 3),
+				foreground = ifx coord.x * 2 < zone_size.x Color.GREEN else .BRIGHT_GREEN,
+				bold = coord.y < zone_size.y / 2,
+				dim = (coord.x * 4 < zone_size.x) || (coord.x * 2 >= zone_size.x && coord.x * 4 < zone_size.x * 3),
 				background = .BLACK,
 				strikethrough = true
 			);
@@ -64,7 +64,10 @@ demo_00 :: () {
 		// ks_clear_screen();
 
 		// if main_canvas.zone.size != terminal_state.size {
-			resize_fill(*main_canvas, .{size=terminal_state.size}, fill_function);
+			// log("size = %\n", terminal_state.size);
+			resize(*main_canvas, terminal_state.size);
+			// assert(false, "%\n", main_canvas);
+			c_fill(*main_canvas, fill_function);
 		// }
 	
 		draw_tab();
@@ -100,7 +103,7 @@ demo_00 :: () {
 
 #scope_file
 
-main_canvas : Canvas;
+main_canvas : Screen_Canvas;
 
 app_state : struct {
 	cursor, selection := 0, -1;

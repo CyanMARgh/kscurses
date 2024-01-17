@@ -1,9 +1,5 @@
 demo_06 :: () {
-	group : UI_Group;
-		text_buf : UI_Text_Buf;
-		line_input : UI_Line_Input;
 	init(*line_input); defer deinit(*line_input);
-	lines : [..]string;
 	defer {
 		for lines {
 			free(it);
@@ -17,26 +13,22 @@ demo_06 :: () {
 	link_tb(*line_input, *text_buf);
 	set_main_scene(.{*group, *line_input});
 
-	line_input.extra_handler.data = *(struct{_line_input : type_of(*line_input); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}).{*line_input, *lines, *text_buf};
 	line_input.extra_handler.proc = (key : Key, __data : *void) -> bool {
-		using cast(*struct{_line_input : type_of(*line_input); _lines : type_of(*lines); _text_buf : type_of(*text_buf);}) __data;
 		if key == .ENTER {
-			str := get_string(_line_input);
-			reset(_line_input);
-			array_add(_lines, str);
-			_text_buf.lines = <<_lines;
+			str := get_string(*line_input);
+			reset(*line_input);
+			array_add(*lines, str);
+			text_buf.lines = lines;
 			return true;
 		}
 		return false;		
 	};
 
-	text_buf.extra_handler.data = *(struct{_lines : type_of(*lines); _text_buf : type_of(*text_buf);}).{*lines, *text_buf};
 	text_buf.extra_handler.proc = (key : Key, __data : *void) -> bool {
-		using cast(*struct{_lines : type_of(*lines); _text_buf : type_of(*text_buf);}) __data;
-		if key == .ENTER && _lines.count > 0 {
-			str := pop(_lines);
+		if key == .ENTER && lines.count > 0 {
+			str := pop(*lines);
 			free(str);
-			_text_buf.lines = <<_lines;
+			text_buf.lines = lines;
 			return true;
 		}
 		return false;		
@@ -46,3 +38,9 @@ demo_06 :: () {
 	run_singlethread_ui();
 	// run_multithread_ui();
 }
+
+#scope_file
+group : UI_Group;
+	text_buf : UI_Text_Buf;
+	line_input : UI_Line_Input;
+lines : [..]string;

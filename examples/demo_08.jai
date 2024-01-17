@@ -87,7 +87,7 @@ current_dir := Direction.RIGHT;
 
 snake_points : Queue(ivec2);
 game_map : []Cell;
-game_canvas : Canvas;
+game_canvas : Screen_Canvas;
 // empty_cells : Table(ivec2, void, ivec2_hash, operator==);
 
 move :: (stretch := false) {
@@ -163,7 +163,9 @@ init :: () {
 
 	for i : 1..FRUIT_COUNT spawn_fruit();
 
-	resize_clear(*game_canvas, .{size = .{grid_size.x * 2, grid_size.y}}, make_char(#char " ", background = .GREEN));
+	game_canvas = .{};
+	resize(*game_canvas, .{grid_size.x * 2, grid_size.y});
+	c_clear(*game_canvas, make_char(#char " ", background = .GREEN));
 }
 finalize :: () {
 	deinit(*snake_points);
@@ -183,7 +185,7 @@ draw :: () {
 		ks_print(.{0, 0}, make_graphics_mode(foreground = .BLACK, background = .BRIGHT_GREEN), "press ENTER to start");
 
 		case .GAME;
-		if zone_inside_zone(game_canvas.zone, terminal_state.size) {
+		if zone_inside_zone(game_canvas.base.size, terminal_state.size) {
 			for y : 0..grid_size.y-1 {
 				for x : 0..grid_size.x-1 {
 					cell := map_get(.{x, y});
@@ -195,9 +197,6 @@ draw :: () {
 			if game_canvas.force_full_refresh {
 				ks_mode_reset();
 				ks_clear_screen();
-
-				delta := terminal_state.size - game_canvas.zone.size;
-				game_canvas.zone.corner = .{delta.x / 2, delta.y / 2};
 			}
 			ks_draw_canvas(*game_canvas);
 		} else {

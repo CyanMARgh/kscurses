@@ -3,7 +3,8 @@
 	ENABLE_SIGQUIT		:= true,
 	TICK_DURATION_MS	:= 1000,
 	ENABLE_UI_BELL		:= true,
-	ENABLE_UI_BLINKING	:= true
+	ENABLE_UI_BLINKING	:= true,
+	DEBUG				:= true
 );
 
 #if OS == .LINUX {

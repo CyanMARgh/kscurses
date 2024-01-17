@@ -1,10 +1,5 @@
 demo_07 :: () {
-	ticks := 0;
-	last_key : Key;
-	last_event : Event;
-	stop_main := false;
-	events_count := 0;
-
+	bruh = .{};
 	draw :: () #expand {
 		ks_mode_reset();
 		ks_clear_screen();
@@ -15,18 +10,16 @@ demo_07 :: () {
 	}
 
 	#if MULTITHREAD {
-		__event_handler.data = *(struct{_ticks : type_of(*ticks); _stop_main : type_of(*stop_main); _last_key : type_of(*last_key); _last_event : type_of(*last_event); _events_count : type_of(*events_count);}).{*ticks, *stop_main, *last_key, *last_event, *events_count};
 		__event_handler.proc = (e : Event, __data : *void) {
-			using cast(*struct{_ticks : type_of(*ticks); _stop_main : type_of(*stop_main); _last_key : type_of(*last_key); _last_event : type_of(*last_event); _events_count : type_of(*events_count);}) __data;
 			if e.type == {
 				case .KEY;
-				<<_last_key = e.key;
+				last_key = e.key;
 				case .TICK;
-				<<_ticks += 1;
+				ticks += 1;
 			}
-			<<_last_event = e;
+			last_event = e;
 			if e.type == .KEY && e.key == .ESCAPE {
-				<<_stop_main = true;
+				stop_main = true;
 			}			
 		};
 		use_ks_curses();
@@ -50,4 +43,11 @@ demo_07 :: () {
 	}
 }
 #scope_file
+using bruh : struct {
+	ticks := 0;
+	last_key : Key;
+	last_event : Event;
+	stop_main := false;
+	events_count := 0;
+}
 MULTITHREAD :: true;
