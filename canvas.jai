@@ -94,6 +94,9 @@ c_clear :: (using canvas : *Canvas, filler := Char.{}, $partial := false, zone :
 		assert(!screen);
 		p0 := zone.corner;
 		p1 := zone.corner + zone.size;
+
+		p0 = .{max(p0.x, 0), max(p0.y, 0)};
+		p1 = .{min(p1.x, size.x), min(p1.y, size.y)};
 	} else {
 		p0, p1 : ivec2 = .{0, 0}, size;
 	}
@@ -207,7 +210,8 @@ c_print_ascii :: (canvas : *Canvas, coord : ivec2, mode : Graphics_Mode, fmt : s
 }
 
 at :: (using canvas : Canvas, pos : ivec2) -> Char {
-	current := pos.x + pos.y * zone.width;
+	if !point_inside_zone(pos, size) return .{code = 0};
+	current := pos.x + pos.y * size.x;
 	return pixels_buf[current];
 }
 

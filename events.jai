@@ -117,7 +117,7 @@ handler :: (sig : s32) #c_call {
 			signal(*winch_wait_sem);
 		} else {
 			log("signal = %\n\r", sig);
-		}		
+		}
 	}
 }
 set_handler :: () {

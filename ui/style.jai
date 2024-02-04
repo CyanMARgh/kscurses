@@ -53,7 +53,7 @@ UI_Style :: struct {
 	}
 }
 
-c_box :: (canvas : *Canvas, zone : Ibox2, using _charset := box_style_passive, border := true) -> bool {
+c_box :: (canvas : *Canvas, zone : Ibox2, using _charset := box_style_passive, border := true, $partial := false, clamp_zone := Ibox2.{}) -> bool {
 	if !zone_inside_zone(ifx border then ivec2.{2, 2} else ivec2.{0, 0}, zone.size) return false;
 	// assert(zone_inside_zone(zone, canvas.zone), "% / %", zone, canvas.zone);
 	charset : [9]u32;
@@ -63,14 +63,45 @@ c_box :: (canvas : *Canvas, zone : Ibox2, using _charset := box_style_passive, b
 		charset = .[c, c, c, c, c, c, c, c, c];
 	}
 
-	for y : 0..zone.height-1 {
-		yi := ifx y == 0 then 0 else ifx y == zone.height - 1 then 2 else 1;
-		for x : 0..zone.width-1 {
-			xi := ifx x == 0 then 0 else ifx x == zone.width - 1 then 2 else 1;
-			i := yi * 3 + xi;
-			c_putchar(canvas, .{code = charset[i], mode = mode_border}, zone.corner + ivec2.{xx x, xx y});
-		}
+	P0, P1 := zone.corner, zone.corner + zone.size - .{1, 1};
+
+	zone_to_draw := 
+		// zone;
+		intersection(zone, .{size = canvas.size});	
+	#if partial {
+		zone_to_draw = intersection(zone_inside_zone, clamp_zone);
 	}
+
+	p0, p1 := zone_to_draw.corner, zone_to_draw.corner + zone_to_draw.size - .{1, 1};
+
+	draw_char :: () #expand {
+		c_putchar(canvas, .{code = charset[`yi * 3 + `xi], mode = mode_border}, .{xx `x, xx `y});
+	}
+
+	get_xi :: (x : int) -> int #expand {
+		return ifx x == P0.x then 0 else ifx x == P1.x then 2 else 1;
+	}
+
+	for y : p0.y..p1.y {
+		yi := ifx y == P0.y then 0 else ifx y == P1.y then 2 else 1;
+		{
+			x := p0.x;
+			xi := get_xi(x);
+			draw_char();
+		}
+		if c || yi != 1 {
+			for x : p0.x+1..p1.x-1 {
+				xi := get_xi(x);
+				draw_char();
+			}
+		}
+		{
+			x := p1.x;
+			xi := get_xi(x);
+			draw_char();
+		}
+	}		
+
 	return true;
 }
 

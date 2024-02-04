@@ -26,12 +26,15 @@ Key :: enum u64 {
 	ALT_RIGHT		:: 0x4333_3b315b1b;
 	ALT_LEFT		:: 0x4433_3b315b1b;
 
+	CTRL_A          :: 0x01;
 	CTRL_C			:: 0x03;
 	CTRL_V			:: 0x16;
 	CTRL_X			:: 0x18;
 	CTRL_Y			:: 0x19;
 	CTRL_Z			:: 0x1A;
 	CTRL_BACKSLASH	:: 0x1C;
+	CTRL_BACKSPACE  :: 0x08;
+	CTRL_SLASH 		:: 0x1f;
 
 	// ALT_SHIFT_UP	:: 0x4133_3b315b1b;
 	// ALT_SHIFT_DOWN	:: 0x4233_3b315b1b;
@@ -42,7 +45,9 @@ Key :: enum u64 {
 	TAB 			:: #char"\t";
 	ESCAPE			:: 0x1B;
 	BACKSPACE		:: 0x7F;
-	DELETE			:: 0x7E335B1B;
+	// DELETE			:: 0x7E335B1B;
+	DELETE      :: 5266203;
+	CTRL_DELETE :: 5069595;
 }
 ks_getch :: (block := true) -> Key {
 	#if OS == .LINUX {
