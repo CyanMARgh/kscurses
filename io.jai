@@ -48,6 +48,9 @@ Key :: enum u64 {
 	// DELETE			:: 0x7E335B1B;
 	DELETE      :: 5266203;
 	CTRL_DELETE :: 5069595;
+
+	SHIFT_COMMA :: 60;
+	SHIFT_DOT :: 62;
 }
 ks_getch :: (block := true) -> Key {
 	#if OS == .LINUX {
